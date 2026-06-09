@@ -1,6 +1,6 @@
 import { categoryLabels, createTerm, defaultTerms, statusLabels } from "./data.js";
 import { filterTerms } from "./filters.js";
-import { loadTerms, resetTerms, saveTerms } from "./storage.js";
+import { exportTermsBackup, importTermsBackup, loadTerms, resetTerms, saveTerms } from "./storage.js";
 import { renderTerms } from "./render.js";
 import { updateTermContent } from "./termActions.js";
 
@@ -21,6 +21,9 @@ const formTitle = document.querySelector("#formTitle");
 const editHint = document.querySelector("#editHint");
 const submitButton = document.querySelector("#submitButton");
 const cancelEditButton = document.querySelector("#cancelEditButton");
+const exportButton = document.querySelector("#exportButton");
+const importInput = document.querySelector("#importInput");
+const backupMessage = document.querySelector("#backupMessage");
 
 const state = {
   terms: loadTerms(window.localStorage, defaultTerms),
@@ -78,6 +81,12 @@ function showFormMessage(message, type = "error") {
   formMessage.textContent = message;
   formMessage.dataset.type = type;
   formMessage.hidden = !message;
+}
+
+function showBackupMessage(message, type = "error") {
+  backupMessage.textContent = message;
+  backupMessage.dataset.type = type;
+  backupMessage.hidden = !message;
 }
 
 function validateForm() {
@@ -208,5 +217,48 @@ resetButton.addEventListener("click", () => {
   showFormMessage("已重置为默认词库。", "success");
   renderApp();
 });
+
+exportButton.addEventListener("click", () => {
+  const backupText = exportTermsBackup(state.terms);
+  const blob = new Blob([backupText], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const date = new Date().toISOString().slice(0, 10);
+
+  link.href = url;
+  link.download = `ai-work-dictionary-backup-${date}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+  showBackupMessage("已导出备份文件。", "success");
+});
+
+importInput.addEventListener("change", async () => {
+  const file = importInput.files?.[0];
+  if (!file) {
+    return;
+  }
+
+  const backupText = await file.text();
+  const result = importTermsBackup(backupText);
+  if (!result.ok) {
+    showBackupMessage(result.message);
+    importInput.value = "";
+    return;
+  }
+
+  state.terms = result.terms;
+  saveTerms(window.localStorage, state.terms);
+  exitEditMode();
+  renderApp();
+  showBackupMessage(`导入成功，共恢复 ${state.terms.length} 个词条。`, "success");
+  importInput.value = "";
+});
+
+// Service Worker 让网页具备离线缓存能力。失败时不影响正常在线使用。
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js").catch(() => {
+    showBackupMessage("离线缓存暂时不可用，但在线功能不受影响。");
+  });
+}
 
 renderApp();

@@ -101,6 +101,53 @@ h1 {
   margin-bottom: 20px;
 }
 
+.backup-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.backup-panel h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.backup-copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.backup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.import-label {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #334155;
+  padding: 10px 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.import-label input {
+  display: none;
+}
+
 .section-heading {
   display: flex;
   justify-content: space-between;
@@ -354,9 +401,14 @@ h1 {
 
 @media (max-width: 860px) {
   .hero,
+  .backup-panel,
   .dictionary-grid,
   .term-form {
     grid-template-columns: 1fr;
+  }
+
+  .backup-actions {
+    justify-content: flex-start;
   }
 
   .section-heading {

@@ -1,0 +1,18 @@
+{
+  "name": "AI 工作字典",
+  "short_name": "AI 字典",
+  "description": "一个支持新增、编辑、备份和离线使用的 AI 学习词典。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

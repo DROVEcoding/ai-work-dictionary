@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="AI 工作字典图标">
+  <rect width="512" height="512" rx="96" fill="#0f766e"/>
+  <path d="M142 128h188c31 0 56 25 56 56v200H166c-31 0-56-25-56-56V160c0-18 14-32 32-32Z" fill="#ffffff"/>
+  <path d="M166 128v200c0 31 25 56 56 56h164" fill="none" stroke="#0b5f59" stroke-width="28" stroke-linecap="round"/>
+  <path d="M192 206h126M192 256h94M192 306h126" stroke="#0f766e" stroke-width="26" stroke-linecap="round"/>
+  <circle cx="366" cy="146" r="42" fill="#fef3c7"/>
+  <path d="M366 122v48M342 146h48" stroke="#92400e" stroke-width="16" stroke-linecap="round"/>
+</svg>
