@@ -1,0 +1,35 @@
+{
+  "name": "ai-work-dictionary",
+  "version": "1.1.0",
+  "description": "AI Work Dictionary desktop learning project.",
+  "type": "module",
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "test": "node --test tests/logic.test.mjs",
+    "desktop": "electron .",
+    "desktop:smoke": "electron . --smoke-test",
+    "dist": "electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.drovecoding.aiworkdictionary",
+    "productName": "AI Work Dictionary",
+    "files": [
+      "desktop/**/*",
+      "icons/**/*",
+      "scripts/**/*",
+      "index.html",
+      "style.css",
+      "manifest.json",
+      "service-worker.js"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ]
+    }
+  },
+  "devDependencies": {
+    "electron": "^42.4.0",
+    "electron-builder": "^26.15.2"
+  }
+}
