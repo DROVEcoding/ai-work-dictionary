@@ -20,6 +20,41 @@
       </div>
     </section>
 
+    <section class="manager-panel" aria-label="新增词条">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Manage Terms</p>
+          <h2>新增学习词条</h2>
+        </div>
+        <button class="reset-button" id="resetButton" type="button">重置默认词库</button>
+      </div>
+
+      <form class="term-form" id="termForm">
+        <label>
+          <span>词条名称</span>
+          <input id="termInput" type="text" placeholder="例如：localStorage">
+        </label>
+        <label>
+          <span>分类</span>
+          <select id="categoryInput">
+            <option value="github">GitHub / Git</option>
+            <option value="ai">AI 编程</option>
+            <option value="process">项目流程</option>
+          </select>
+        </label>
+        <label class="wide-field">
+          <span>解释</span>
+          <textarea id="definitionInput" rows="3" placeholder="用新手能懂的话解释这个词"></textarea>
+        </label>
+        <label class="wide-field">
+          <span>解决的问题</span>
+          <textarea id="solvesInput" rows="3" placeholder="说明这个词是为了解决什么问题而存在"></textarea>
+        </label>
+        <button class="primary-button" type="submit">新增词条</button>
+        <p class="form-message" id="formMessage" hidden></p>
+      </form>
+    </section>
+
     <section class="toolbar" aria-label="词典工具">
       <label class="search-label" for="searchInput">搜索词汇</label>
       <input id="searchInput" class="search-input" type="search" placeholder="例如：CLI、Commit、分支">
@@ -30,12 +65,19 @@
         <button class="filter-button" type="button" data-category="ai">AI 编程</button>
         <button class="filter-button" type="button" data-category="process">项目流程</button>
       </div>
+
+      <div class="filter-group" aria-label="学习状态筛选">
+        <button class="filter-button active" type="button" data-status="all">全部状态</button>
+        <button class="filter-button" type="button" data-status="unknown">不会</button>
+        <button class="filter-button" type="button" data-status="learning">在学</button>
+        <button class="filter-button" type="button" data-status="known">已会</button>
+      </div>
     </section>
 
     <section class="dictionary-grid" id="dictionaryGrid" aria-live="polite"></section>
     <p class="empty-state" id="emptyState" hidden>没有找到匹配的词。换个关键词试试。</p>
   </main>
 
-  <script src="script.js"></script>
+  <script type="module" src="scripts/app.js"></script>
 </body>
 </html>
