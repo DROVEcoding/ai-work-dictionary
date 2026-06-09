@@ -1,0 +1,204 @@
+:root {
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --text: #172033;
+  --muted: #5d6878;
+  --line: #d8e1ed;
+  --accent: #0f766e;
+  --github: #dcfce7;
+  --github-text: #166534;
+  --ai: #fef3c7;
+  --ai-text: #92400e;
+  --process: #e0f2fe;
+  --process-text: #075985;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.page-shell {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 40px 0 56px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 20px;
+  align-items: stretch;
+  padding: 30px;
+  margin-bottom: 22px;
+}
+
+.hero,
+.toolbar,
+.summary-card,
+.term-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: 38px;
+  line-height: 1.15;
+}
+
+.intro {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 150px;
+}
+
+.summary-number {
+  font-size: 44px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.summary-label {
+  color: var(--muted);
+}
+
+.toolbar {
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.search-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.search-input {
+  width: 100%;
+  height: 46px;
+  border: 1px solid #c6d1df;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-size: 16px;
+  color: var(--text);
+  background: #fbfcff;
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.filter-button {
+  border: 1px solid #c6d1df;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #334155;
+  padding: 9px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.filter-button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.dictionary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.term-card {
+  padding: 18px;
+  min-height: 220px;
+}
+
+.category-badge {
+  display: inline-flex;
+  margin-bottom: 14px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.category-github {
+  background: var(--github);
+  color: var(--github-text);
+}
+
+.category-ai {
+  background: var(--ai);
+  color: var(--ai-text);
+}
+
+.category-process {
+  background: var(--process);
+  color: var(--process-text);
+}
+
+.term-card h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+}
+
+.term-card p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.term-card strong {
+  color: var(--text);
+}
+
+.empty-state {
+  margin: 22px 0 0;
+  padding: 24px;
+  border: 1px dashed #b8c4d4;
+  border-radius: 8px;
+  color: var(--muted);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+@media (max-width: 860px) {
+  .hero,
+  .dictionary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  h1 {
+    font-size: 31px;
+  }
+}
