@@ -122,20 +122,20 @@ http://localhost:8000
 - `GitHub`：上传和展示项目
 - `GitHub Pages`：把网页发布成可访问的网址
 
-## V5 Desktop Learning
+## V5 桌面版学习
 
-V5 adds an Electron desktop shell. The detailed learning note is in:
+V5 新增 Electron 桌面壳。详细学习说明在：
 
 ```text
 docs/v5-electron-desktop.md
 ```
 
-New desktop-related files:
+V5 新增的桌面相关文件：
 
-| File / module | Purpose | Beginner meaning |
+| 文件 / 模块 | 中文用途 | 新手理解 |
 |---|---|---|
-| `package.json` | npm project config | Records commands such as test, desktop run, and desktop build. |
-| `package-lock.json` | dependency lock file | Freezes exact tool versions so another computer installs the same dependencies. |
-| `desktop/main.cjs` | Electron main process | Creates the desktop window and loads the existing web page. |
-| `.github/workflows/desktop-build.yml` | cloud desktop build | Lets GitHub build the Windows portable app when local download is slow. |
-| `docs/v5-electron-desktop.md` | V5 learning note | Explains Electron, packaging, artifacts, and production limits. |
+| `package.json` | npm 项目配置 | 记录测试、启动桌面版、打包桌面版这些命令。 |
+| `package-lock.json` | 依赖锁定文件 | 固定工具版本，让另一台电脑安装到同一批依赖。 |
+| `desktop/main.cjs` | Electron 主进程入口 | 创建桌面窗口，并加载现有网页 `index.html`。 |
+| `.github/workflows/desktop-build.yml` | 云端桌面构建流程 | 当本地下载 Electron 太慢时，让 GitHub 在云端打包 Windows 便携版。 |
+| `docs/v5-electron-desktop.md` | V5 学习说明 | 解释 Electron、打包、构建产物和真实产品限制。 |
