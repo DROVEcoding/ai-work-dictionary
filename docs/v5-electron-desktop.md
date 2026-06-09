@@ -1,70 +1,70 @@
-# V5: Electron Desktop App
+# V5：Electron 桌面版
 
-V5 teaches desktop packaging.
+V5 的学习主题是：桌面应用打包。
 
-The current project is a web app. Electron adds a desktop shell around the same `index.html`, so the app can become a Windows desktop program without rewriting the dictionary UI.
+当前项目本质上是一个网页应用。Electron 会在外面加一层桌面壳，让同一个 `index.html` 可以在 Windows 桌面窗口里运行。这样我们不用重写词典界面，也能学习“网页如何变成桌面软件”。
 
-## What This Version Teaches
+## 这一版学习什么
 
-- `npm`: the package manager that records development tools and commands.
-- `package.json`: the project instruction file for Node/npm tools.
-- `Electron`: a desktop shell that bundles Chromium and loads our web app.
-- `main process`: the Electron entry file that creates the desktop window.
-- `portable app`: a build output that can run without a traditional installer.
-- `artifact`: a file produced by a build, such as a zipped desktop app.
+- `npm`：管理开发工具和命令的工具。
+- `package.json`：Node/npm 项目的说明书，记录项目名称、版本、命令和依赖。
+- `Electron`：桌面应用框架，把网页放进一个自带 Chromium 的桌面窗口。
+- `main process`：Electron 的主进程，负责创建窗口、控制桌面程序生命周期。
+- `portable app`：便携版应用，不一定需要传统安装流程，下载后可以运行。
+- `artifact`：构建产物，比如 GitHub Actions 生成的桌面应用压缩包。
 
-## Learning Demo vs Production Reality
+## 学习版和真实产品的区别
 
-This version is a learning demo:
+这一版是学习版：
 
-- It creates an Electron shell.
-- It reuses the existing web UI.
-- It can run tests with `npm test`.
-- It can build a Windows portable app through GitHub Actions.
+- 创建 Electron 桌面壳。
+- 复用现有网页界面。
+- 可以继续用 `npm test` 跑原有逻辑测试。
+- 可以通过 GitHub Actions 在云端构建 Windows 便携版。
 
-Production desktop distribution may also need:
+真实商业桌面分发通常还需要：
 
-- code signing certificates,
-- installer customization,
-- auto-update configuration,
-- Windows security reputation,
-- crash reporting,
-- customer support and version rollback plans.
+- 代码签名证书；
+- 安装包样式和安装路径设计；
+- 自动更新；
+- Windows 安全信誉积累；
+- 崩溃日志和错误上报；
+- 客户支持、版本回滚和问题排查流程。
 
-Those are intentionally left for later versions.
+这些不是 V5 一次性完成的内容，后面版本会逐步学习。
 
-## Local Commands
+## 本地命令
 
-Install dependencies:
+安装依赖：
 
 ```bash
 npm install
 ```
 
-Run web logic tests:
+运行网页逻辑测试：
 
 ```bash
 npm test
 ```
 
-Run the desktop app after Electron's runtime has downloaded:
+Electron 运行时下载完成后，启动桌面版：
 
 ```bash
 npm run desktop
 ```
 
-Build a Windows portable app locally:
+本地构建 Windows 便携版：
 
 ```bash
 npm run dist
 ```
 
-## Current Environment Note
+## 当前环境说明
 
-Electron needs to download a Windows runtime zip of about 148 MB. On this computer, that runtime download timed out during local setup, so V5 also includes a GitHub Actions workflow:
+Electron 需要下载一个大约 148 MB 的 Windows 运行时压缩包。在当前电脑网络下，本地下载超时，所以 V5 也加入了 GitHub Actions 云端构建流程：
 
 ```text
 .github/workflows/desktop-build.yml
 ```
 
-That workflow lets GitHub build the Windows portable artifact in the cloud.
+这个流程让 GitHub 在云端构建 Windows 便携版，并把结果作为 artifact 提供下载。
