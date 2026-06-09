@@ -41,7 +41,10 @@ export function renderTerms(grid, terms, options) {
 
     const actions = document.createElement("div");
     actions.className = "card-actions";
-    actions.append(createButton("删除", "delete-button", () => options.onDelete(item.id)));
+    actions.append(
+      createButton("编辑", "edit-button", () => options.onEdit(item.id)),
+      createButton("删除", "delete-button", () => options.onDelete(item.id))
+    );
 
     card.append(badge, title, definition, solves, statusGroup, actions);
     grid.append(card);

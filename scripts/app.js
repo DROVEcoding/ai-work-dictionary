@@ -2,6 +2,7 @@ import { categoryLabels, createTerm, defaultTerms, statusLabels } from "./data.j
 import { filterTerms } from "./filters.js";
 import { loadTerms, resetTerms, saveTerms } from "./storage.js";
 import { renderTerms } from "./render.js";
+import { updateTermContent } from "./termActions.js";
 
 const grid = document.querySelector("#dictionaryGrid");
 const searchInput = document.querySelector("#searchInput");
@@ -16,12 +17,17 @@ const definitionInput = document.querySelector("#definitionInput");
 const solvesInput = document.querySelector("#solvesInput");
 const formMessage = document.querySelector("#formMessage");
 const resetButton = document.querySelector("#resetButton");
+const formTitle = document.querySelector("#formTitle");
+const editHint = document.querySelector("#editHint");
+const submitButton = document.querySelector("#submitButton");
+const cancelEditButton = document.querySelector("#cancelEditButton");
 
 const state = {
   terms: loadTerms(window.localStorage, defaultTerms),
   category: "all",
   status: "all",
-  query: ""
+  query: "",
+  editingTermId: null
 };
 
 function setActiveButton(buttons, activeValue, dataName) {
@@ -40,6 +46,7 @@ function renderApp() {
   renderTerms(grid, visibleTerms, {
     statusLabels,
     onStatusChange: updateTermStatus,
+    onEdit: enterEditMode,
     onDelete: deleteTerm
   });
 
@@ -61,6 +68,9 @@ function updateTermStatus(id, status) {
 
 function deleteTerm(id) {
   state.terms = state.terms.filter((term) => term.id !== id);
+  if (state.editingTermId === id) {
+    exitEditMode();
+  }
   persistAndRender();
 }
 
@@ -84,10 +94,67 @@ function validateForm() {
   return true;
 }
 
+function setFormMode(mode) {
+  const isEditing = mode === "edit";
+  formTitle.textContent = isEditing ? "编辑词条" : "新增学习词条";
+  submitButton.textContent = isEditing ? "保存修改" : "新增词条";
+  cancelEditButton.hidden = !isEditing;
+  editHint.hidden = !isEditing;
+}
+
+function fillForm(term) {
+  termInput.value = term.term;
+  categoryInput.value = term.category;
+  definitionInput.value = term.definition;
+  solvesInput.value = term.solves;
+}
+
+function clearForm() {
+  termForm.reset();
+  showFormMessage("");
+}
+
+function enterEditMode(id) {
+  const term = state.terms.find((item) => item.id === id);
+  if (!term) {
+    showFormMessage("没有找到要编辑的词条。");
+    return;
+  }
+
+  state.editingTermId = id;
+  fillForm(term);
+  setFormMode("edit");
+  showFormMessage(`正在编辑：${term.term}`, "success");
+  termInput.focus();
+}
+
+function exitEditMode() {
+  state.editingTermId = null;
+  clearForm();
+  setFormMode("add");
+}
+
 termForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
   if (!validateForm()) {
+    return;
+  }
+
+  const formValues = {
+    term: termInput.value,
+    category: categoryInput.value,
+    definition: definitionInput.value,
+    solves: solvesInput.value
+  };
+
+  if (state.editingTermId) {
+    state.terms = updateTermContent(state.terms, state.editingTermId, formValues);
+    state.editingTermId = null;
+    termForm.reset();
+    setFormMode("add");
+    showFormMessage("已保存修改。", "success");
+    persistAndRender();
     return;
   }
 
@@ -104,6 +171,10 @@ termForm.addEventListener("submit", (event) => {
   termForm.reset();
   showFormMessage("已新增词条。", "success");
   persistAndRender();
+});
+
+cancelEditButton.addEventListener("click", () => {
+  exitEditMode();
 });
 
 searchInput.addEventListener("input", () => {

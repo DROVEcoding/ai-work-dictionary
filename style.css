@@ -114,6 +114,12 @@ h1 {
   font-size: 24px;
 }
 
+.edit-hint {
+  margin: 8px 0 0;
+  color: var(--accent);
+  line-height: 1.5;
+}
+
 .term-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 220px;
@@ -149,7 +155,8 @@ h1 {
 }
 
 .primary-button,
-.reset-button {
+.reset-button,
+.secondary-button {
   border: 1px solid transparent;
   border-radius: 6px;
   padding: 10px 14px;
@@ -158,9 +165,21 @@ h1 {
 }
 
 .primary-button {
-  width: fit-content;
   background: var(--accent);
   color: #ffffff;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.secondary-button {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
 }
 
 .reset-button {
@@ -298,18 +317,29 @@ h1 {
 
 .card-actions {
   display: flex;
+  gap: 8px;
   justify-content: flex-end;
   margin-top: 14px;
 }
 
+.edit-button,
 .delete-button {
-  border: 1px solid #fecaca;
   border-radius: 6px;
-  background: #fffafa;
-  color: #b91c1c;
   padding: 7px 10px;
   font-size: 13px;
   cursor: pointer;
+}
+
+.edit-button {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.delete-button {
+  border: 1px solid #fecaca;
+  background: #fffafa;
+  color: #b91c1c;
 }
 
 .empty-state {
