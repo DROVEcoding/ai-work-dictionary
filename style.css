@@ -87,6 +87,14 @@ h1 {
   color: var(--muted);
 }
 
+.workspace-label {
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
 .toolbar {
   padding: 18px;
   margin-bottom: 20px;

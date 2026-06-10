@@ -41,6 +41,15 @@ export function loadTerms(storage, fallbackTerms, userId = null) {
   }
 }
 
+export function loadTermsOrResetIfEmpty(storage, fallbackTerms, userId = null) {
+  const terms = loadTerms(storage, fallbackTerms, userId);
+  if (terms.length > 0) {
+    return terms;
+  }
+
+  return resetTerms(storage, fallbackTerms, userId);
+}
+
 export function saveTerms(storage, terms, userId = null) {
   storage.setItem(getTermsStorageKey(userId), JSON.stringify(terms));
 }

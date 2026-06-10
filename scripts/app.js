@@ -10,7 +10,7 @@ import {
   uploadTermsToCloud
 } from "./cloudSync.js";
 import { createSupabaseClient, isSupabaseConfigured } from "./supabaseClient.js";
-import { exportTermsBackup, importTermsBackup, loadTerms, resetTerms, saveTerms } from "./storage.js";
+import { exportTermsBackup, importTermsBackup, loadTerms, loadTermsOrResetIfEmpty, resetTerms, saveTerms } from "./storage.js";
 import { renderTerms } from "./render.js";
 import { updateTermContent } from "./termActions.js";
 
@@ -27,6 +27,7 @@ const categoryButtons = document.querySelectorAll("[data-category]");
 const statusButtons = document.querySelectorAll("[data-status]");
 const emptyState = document.querySelector("#emptyState");
 const termCount = document.querySelector("#termCount");
+const workspaceLabel = document.querySelector("#workspaceLabel");
 const termForm = document.querySelector("#termForm");
 const termInput = document.querySelector("#termInput");
 const categoryInput = document.querySelector("#categoryInput");
@@ -89,6 +90,7 @@ function renderApp() {
 
   emptyState.hidden = visibleTerms.length > 0;
   termCount.textContent = state.terms.length;
+  workspaceLabel.textContent = getActiveWorkspaceLabel();
 }
 
 function persistAndRender() {
@@ -98,6 +100,26 @@ function persistAndRender() {
 
 function getActiveTermsUserId() {
   return state.cloudUser ? `cloud:${state.cloudUser.id}` : state.currentUser?.id;
+}
+
+function getActiveWorkspaceLabel() {
+  if (state.cloudUser) {
+    return `云端空间：${state.cloudUser.email}`;
+  }
+
+  if (state.currentUser) {
+    return `本地空间：${state.currentUser.displayName}`;
+  }
+
+  return "访客本地空间";
+}
+
+function loadCurrentWorkspaceTerms() {
+  return loadTerms(window.localStorage, defaultTerms, getActiveTermsUserId());
+}
+
+function loadLocalFallbackTermsAfterCloudSignOut() {
+  return loadTermsOrResetIfEmpty(window.localStorage, defaultTerms, getActiveTermsUserId());
 }
 
 function showLoginMessage(message, type = "error") {
@@ -148,7 +170,7 @@ function renderCloudAuth() {
 
 function switchUser(user) {
   state.currentUser = user;
-  state.terms = loadTerms(window.localStorage, defaultTerms, getActiveTermsUserId());
+  state.terms = loadCurrentWorkspaceTerms();
   exitEditMode();
   renderApp();
 }
@@ -157,7 +179,7 @@ async function refreshCloudUser() {
   const result = await getCloudUser(supabase);
   state.cloudUser = result.ok ? result.user : null;
   if (result.ok) {
-    state.terms = loadTerms(window.localStorage, defaultTerms, getActiveTermsUserId());
+    state.terms = loadCurrentWorkspaceTerms();
     exitEditMode();
     showCloudMessage(result.message, "success");
   }
@@ -454,7 +476,7 @@ cloudSignOutButton.addEventListener("click", async () => {
   try {
     const result = await signOutCloudUser(supabase);
     state.cloudUser = null;
-    state.terms = loadTerms(window.localStorage, defaultTerms, getActiveTermsUserId());
+    state.terms = loadLocalFallbackTermsAfterCloudSignOut();
     exitEditMode();
     showCloudMessage(result.message, result.ok ? "success" : "error");
     renderApp();

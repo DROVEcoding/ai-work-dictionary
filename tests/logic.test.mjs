@@ -5,7 +5,7 @@ import { clearSession, createLocalUser, loadSession, saveSession } from "../scri
 import { createCloudBackupPayload } from "../scripts/cloudSync.js";
 import { createTerm, defaultTerms } from "../scripts/data.js";
 import { filterTerms } from "../scripts/filters.js";
-import { exportTermsBackup, getTermsStorageKey, importTermsBackup, loadTerms, saveTerms, resetTerms } from "../scripts/storage.js";
+import { exportTermsBackup, getTermsStorageKey, importTermsBackup, loadTerms, loadTermsOrResetIfEmpty, saveTerms, resetTerms } from "../scripts/storage.js";
 import { updateTermContent } from "../scripts/termActions.js";
 
 function createFakeStorage() {
@@ -67,6 +67,16 @@ test("重置会把保存内容恢复为默认词库", () => {
   const loaded = loadTerms(storage, []);
   assert.equal(loaded.length, 20);
   assert.equal(loaded[0].status, "unknown");
+});
+
+test("空的本地空间可以恢复默认词库", () => {
+  const storage = createFakeStorage();
+  saveTerms(storage, [], null);
+
+  const restored = loadTermsOrResetIfEmpty(storage, defaultTerms, null);
+
+  assert.equal(restored.length, 20);
+  assert.equal(loadTerms(storage, [], null).length, 20);
 });
 
 test("编辑词条内容时保留原 id、学习状态和默认来源", () => {
