@@ -33,7 +33,7 @@ export async function signUpCloudUser(supabase, email, password) {
     return { ok: false, message: error.message };
   }
 
-  return { ok: true, message: "注册请求已提交。如果 Supabase 要求邮箱确认，请先去邮箱完成确认。" };
+  return { ok: true, message: "注册请求已提交。请检查邮箱完成确认；如果没有确认邮件，可以直接尝试登录。" };
 }
 
 export async function signInCloudUser(supabase, email, password) {

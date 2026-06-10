@@ -108,6 +108,16 @@ function showCloudMessage(message, type = "error") {
   cloudMessage.hidden = !message;
 }
 
+function setCloudButtonsDisabled(isDisabled) {
+  cloudSignUpButton.disabled = isDisabled;
+  uploadCloudButton.disabled = isDisabled;
+  downloadCloudButton.disabled = isDisabled;
+  cloudSignOutButton.disabled = isDisabled;
+  cloudAuthForm.querySelectorAll("button").forEach((button) => {
+    button.disabled = isDisabled;
+  });
+}
+
 function renderAuth() {
   const isLoggedIn = Boolean(state.currentUser);
   loginForm.hidden = isLoggedIn;
@@ -364,20 +374,35 @@ logoutButton.addEventListener("click", () => {
 cloudAuthForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  const result = await signInCloudUser(supabase, cloudEmailInput.value, cloudPasswordInput.value);
-  showCloudMessage(result.message, result.ok ? "success" : "error");
-  if (result.ok) {
-    cloudPasswordInput.value = "";
-    await refreshCloudUser();
+  setCloudButtonsDisabled(true);
+  showCloudMessage("正在登录云端账号，请稍等...", "success");
+  try {
+    const result = await signInCloudUser(supabase, cloudEmailInput.value, cloudPasswordInput.value);
+    showCloudMessage(result.message, result.ok ? "success" : "error");
+    if (result.ok) {
+      cloudPasswordInput.value = "";
+      await refreshCloudUser();
+    }
+  } finally {
+    setCloudButtonsDisabled(false);
   }
 });
 
 cloudSignUpButton.addEventListener("click", async () => {
-  const result = await signUpCloudUser(supabase, cloudEmailInput.value, cloudPasswordInput.value);
-  showCloudMessage(result.message, result.ok ? "success" : "error");
+  setCloudButtonsDisabled(true);
+  showCloudMessage("正在注册云端账号，请稍等...", "success");
+  try {
+    const result = await signUpCloudUser(supabase, cloudEmailInput.value, cloudPasswordInput.value);
+    showCloudMessage(result.message, result.ok ? "success" : "error");
+  } finally {
+    setCloudButtonsDisabled(false);
+  }
 });
 
 uploadCloudButton.addEventListener("click", async () => {
+  setCloudButtonsDisabled(true);
+  showCloudMessage("正在上传到云端，请稍等...", "success");
+  try {
   const userResult = await getCloudUser(supabase);
   if (!userResult.ok) {
     showCloudMessage(userResult.message);
@@ -386,9 +411,15 @@ uploadCloudButton.addEventListener("click", async () => {
 
   const result = await uploadTermsToCloud(supabase, userResult.user.id, state.terms);
   showCloudMessage(result.message, result.ok ? "success" : "error");
+  } finally {
+    setCloudButtonsDisabled(false);
+  }
 });
 
 downloadCloudButton.addEventListener("click", async () => {
+  setCloudButtonsDisabled(true);
+  showCloudMessage("正在从云端恢复，请稍等...", "success");
+  try {
   const userResult = await getCloudUser(supabase);
   if (!userResult.ok) {
     showCloudMessage(userResult.message);
@@ -406,13 +437,22 @@ downloadCloudButton.addEventListener("click", async () => {
   exitEditMode();
   renderApp();
   showCloudMessage(result.message, "success");
+  } finally {
+    setCloudButtonsDisabled(false);
+  }
 });
 
 cloudSignOutButton.addEventListener("click", async () => {
-  const result = await signOutCloudUser(supabase);
-  state.cloudUser = null;
-  showCloudMessage(result.message, result.ok ? "success" : "error");
-  renderApp();
+  setCloudButtonsDisabled(true);
+  showCloudMessage("正在退出云端账号，请稍等...", "success");
+  try {
+    const result = await signOutCloudUser(supabase);
+    state.cloudUser = null;
+    showCloudMessage(result.message, result.ok ? "success" : "error");
+    renderApp();
+  } finally {
+    setCloudButtonsDisabled(false);
+  }
 });
 
 // Service Worker 让网页具备离线缓存能力。失败时不影响正常在线使用。
