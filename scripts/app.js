@@ -1,10 +1,20 @@
 import { categoryLabels, createTerm, defaultTerms, statusLabels } from "./data.js";
 import { filterTerms } from "./filters.js";
 import { clearSession, createLocalUser, loadSession, saveSession } from "./auth.js";
+import {
+  downloadTermsFromCloud,
+  getCloudUser,
+  signInCloudUser,
+  signOutCloudUser,
+  signUpCloudUser,
+  uploadTermsToCloud
+} from "./cloudSync.js";
+import { createSupabaseClient, isSupabaseConfigured } from "./supabaseClient.js";
 import { exportTermsBackup, importTermsBackup, loadTerms, resetTerms, saveTerms } from "./storage.js";
 import { renderTerms } from "./render.js";
 import { updateTermContent } from "./termActions.js";
 
+const supabase = await createSupabaseClient();
 const loginForm = document.querySelector("#loginForm");
 const usernameInput = document.querySelector("#usernameInput");
 const authSession = document.querySelector("#authSession");
@@ -31,9 +41,20 @@ const cancelEditButton = document.querySelector("#cancelEditButton");
 const exportButton = document.querySelector("#exportButton");
 const importInput = document.querySelector("#importInput");
 const backupMessage = document.querySelector("#backupMessage");
+const cloudAuthForm = document.querySelector("#cloudAuthForm");
+const cloudEmailInput = document.querySelector("#cloudEmailInput");
+const cloudPasswordInput = document.querySelector("#cloudPasswordInput");
+const cloudSignUpButton = document.querySelector("#cloudSignUpButton");
+const cloudSession = document.querySelector("#cloudSession");
+const cloudUserDisplay = document.querySelector("#cloudUserDisplay");
+const uploadCloudButton = document.querySelector("#uploadCloudButton");
+const downloadCloudButton = document.querySelector("#downloadCloudButton");
+const cloudSignOutButton = document.querySelector("#cloudSignOutButton");
+const cloudMessage = document.querySelector("#cloudMessage");
 
 const state = {
   currentUser: loadSession(window.localStorage),
+  cloudUser: null,
   terms: [],
   category: "all",
   status: "all",
@@ -51,6 +72,7 @@ function setActiveButton(buttons, activeValue, dataName) {
 
 function renderApp() {
   renderAuth();
+  renderCloudAuth();
 
   const visibleTerms = filterTerms(state.terms, {
     query: state.query,
@@ -80,6 +102,12 @@ function showLoginMessage(message, type = "error") {
   loginMessage.hidden = !message;
 }
 
+function showCloudMessage(message, type = "error") {
+  cloudMessage.textContent = message;
+  cloudMessage.dataset.type = type;
+  cloudMessage.hidden = !message;
+}
+
 function renderAuth() {
   const isLoggedIn = Boolean(state.currentUser);
   loginForm.hidden = isLoggedIn;
@@ -89,10 +117,34 @@ function renderAuth() {
     : "";
 }
 
+function renderCloudAuth() {
+  const isConfigured = isSupabaseConfigured();
+  const isLoggedIn = Boolean(state.cloudUser);
+
+  cloudAuthForm.hidden = !isConfigured || isLoggedIn;
+  cloudSession.hidden = !isLoggedIn;
+  cloudUserDisplay.textContent = isLoggedIn
+    ? `云端账号：${state.cloudUser.email}`
+    : "";
+
+  if (!isConfigured) {
+    showCloudMessage("Supabase 还没有配置。请先按 V7 文档创建项目、建表，并填写 scripts/supabaseConfig.js。");
+  }
+}
+
 function switchUser(user) {
   state.currentUser = user;
   state.terms = loadTerms(window.localStorage, defaultTerms, state.currentUser?.id);
   exitEditMode();
+  renderApp();
+}
+
+async function refreshCloudUser() {
+  const result = await getCloudUser(supabase);
+  state.cloudUser = result.ok ? result.user : null;
+  if (result.ok) {
+    showCloudMessage(result.message, "success");
+  }
   renderApp();
 }
 
@@ -309,6 +361,60 @@ logoutButton.addEventListener("click", () => {
   switchUser(null);
 });
 
+cloudAuthForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const result = await signInCloudUser(supabase, cloudEmailInput.value, cloudPasswordInput.value);
+  showCloudMessage(result.message, result.ok ? "success" : "error");
+  if (result.ok) {
+    cloudPasswordInput.value = "";
+    await refreshCloudUser();
+  }
+});
+
+cloudSignUpButton.addEventListener("click", async () => {
+  const result = await signUpCloudUser(supabase, cloudEmailInput.value, cloudPasswordInput.value);
+  showCloudMessage(result.message, result.ok ? "success" : "error");
+});
+
+uploadCloudButton.addEventListener("click", async () => {
+  const userResult = await getCloudUser(supabase);
+  if (!userResult.ok) {
+    showCloudMessage(userResult.message);
+    return;
+  }
+
+  const result = await uploadTermsToCloud(supabase, userResult.user.id, state.terms);
+  showCloudMessage(result.message, result.ok ? "success" : "error");
+});
+
+downloadCloudButton.addEventListener("click", async () => {
+  const userResult = await getCloudUser(supabase);
+  if (!userResult.ok) {
+    showCloudMessage(userResult.message);
+    return;
+  }
+
+  const result = await downloadTermsFromCloud(supabase, userResult.user.id);
+  if (!result.ok) {
+    showCloudMessage(result.message);
+    return;
+  }
+
+  state.terms = result.terms;
+  saveTerms(window.localStorage, state.terms, state.currentUser?.id);
+  exitEditMode();
+  renderApp();
+  showCloudMessage(result.message, "success");
+});
+
+cloudSignOutButton.addEventListener("click", async () => {
+  const result = await signOutCloudUser(supabase);
+  state.cloudUser = null;
+  showCloudMessage(result.message, result.ok ? "success" : "error");
+  renderApp();
+});
+
 // Service Worker 让网页具备离线缓存能力。失败时不影响正常在线使用。
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js").catch(() => {
@@ -317,3 +423,4 @@ if ("serviceWorker" in navigator) {
 }
 
 renderApp();
+refreshCloudUser();

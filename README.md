@@ -77,6 +77,9 @@ http://localhost:8000
 | `style.css` | 页面样式 | 决定页面长什么样，比如颜色、间距、卡片、按钮、手机适配 |
 | `scripts/data.js` | 默认词库 | 存放初始 20 个词条，以及分类和学习状态的中文名称 |
 | `scripts/auth.js` | 本地模拟登录 | 保存当前用户 session，用来学习账号登录的基本概念 |
+| `scripts/cloudSync.js` | 云端同步逻辑 | 负责注册、登录、上传词条、下载词条 |
+| `scripts/supabaseClient.js` | Supabase 客户端 | 用项目 URL 和 publishable key 连接真实云服务 |
+| `scripts/supabaseConfig.js` | Supabase 配置 | 填写 Supabase 项目 URL 和公开 key；不要放 secret key |
 | `scripts/storage.js` | 本地保存 | 像浏览器里的小本子，负责保存和读取词条 |
 | `scripts/filters.js` | 筛选逻辑 | 决定哪些词条应该显示，处理搜索、分类、学习状态 |
 | `scripts/render.js` | 页面渲染 | 把数据变成看得见的词条卡片 |
@@ -158,3 +161,19 @@ V6A 新增文件：
 |---|---|---|
 | `scripts/auth.js` | 本地模拟登录模块 | 负责创建本地用户、保存 session、退出登录 |
 | `docs/v6a-local-auth.md` | V6A 学习说明 | 解释本地模拟登录和真实登录的区别 |
+
+## V7 Supabase 云端同步
+
+V7 接入 Supabase，学习真实云端账号、数据库表、API 和 RLS 权限规则。
+
+V7 新增文件：
+
+| 文件 / 模块 | 中文用途 | 新手理解 |
+|---|---|---|
+| `scripts/cloudSync.js` | 云端同步逻辑 | 把本地词条上传到 Supabase，或从 Supabase 下载回来 |
+| `scripts/supabaseClient.js` | Supabase 客户端 | 负责创建和 Supabase 通信的客户端 |
+| `scripts/supabaseConfig.js` | Supabase 配置 | 填写项目 URL 和 publishable/anon key |
+| `docs/v7-supabase-cloud-sync.md` | V7 学习说明 | 解释真实云同步、Auth、数据库、RLS 和 key 的区别 |
+| `docs/v7-supabase-schema.sql` | 数据库建表 SQL | 在 Supabase SQL Editor 中执行，创建云端词条备份表和权限规则 |
+
+注意：`publishable key` 或 legacy `anon key` 可以用于前端；`service_role` / `secret key` 不能放进前端，也不要提交到 GitHub。

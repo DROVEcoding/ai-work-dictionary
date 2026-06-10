@@ -97,6 +97,37 @@
       <p class="form-message" id="backupMessage" hidden></p>
     </section>
 
+    <section class="cloud-panel" aria-label="云端同步">
+      <div>
+        <p class="eyebrow">Supabase Cloud Sync</p>
+        <h2>云端同步</h2>
+        <p class="cloud-copy">V7 使用真实 Supabase 项目学习云端账号、数据库和同步。未配置前，这里会保持教学提示状态。</p>
+      </div>
+      <form class="cloud-form" id="cloudAuthForm">
+        <label>
+          <span>邮箱</span>
+          <input id="cloudEmailInput" type="email" autocomplete="email" placeholder="you@example.com">
+        </label>
+        <label>
+          <span>密码</span>
+          <input id="cloudPasswordInput" type="password" autocomplete="current-password" placeholder="至少 6 位">
+        </label>
+        <div class="cloud-actions">
+          <button class="primary-button" id="cloudSignInButton" type="submit">登录云端</button>
+          <button class="secondary-button" id="cloudSignUpButton" type="button">注册云端账号</button>
+        </div>
+      </form>
+      <div class="cloud-session" id="cloudSession" hidden>
+        <span id="cloudUserDisplay"></span>
+        <div class="cloud-actions">
+          <button class="primary-button" id="uploadCloudButton" type="button">上传到云端</button>
+          <button class="secondary-button" id="downloadCloudButton" type="button">从云端恢复</button>
+          <button class="secondary-button" id="cloudSignOutButton" type="button">退出云端</button>
+        </div>
+      </div>
+      <p class="form-message" id="cloudMessage" hidden></p>
+    </section>
+
     <section class="toolbar" aria-label="词典工具">
       <label class="search-label" for="searchInput">搜索词汇</label>
       <input id="searchInput" class="search-input" type="search" placeholder="例如：CLI、Commit、分支">

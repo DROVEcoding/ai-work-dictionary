@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { clearSession, createLocalUser, loadSession, saveSession } from "../scripts/auth.js";
+import { createCloudBackupPayload } from "../scripts/cloudSync.js";
 import { createTerm, defaultTerms } from "../scripts/data.js";
 import { filterTerms } from "../scripts/filters.js";
 import { exportTermsBackup, getTermsStorageKey, importTermsBackup, loadTerms, saveTerms, resetTerms } from "../scripts/storage.js";
@@ -155,4 +156,13 @@ test("不同本地用户使用不同的词条保存位置", () => {
   assert.equal(getTermsStorageKey(alice.id), "ai-learning-dictionary-v2:user:alice");
   assert.equal(loadTerms(storage, defaultTerms, alice.id)[0].term, "Session");
   assert.equal(loadTerms(storage, defaultTerms, bob.id).length, defaultTerms.length);
+});
+
+test("云端同步 payload 会带上用户 id、词条和更新时间", () => {
+  const terms = defaultTerms.slice(0, 1);
+  const payload = createCloudBackupPayload("user-123", terms);
+
+  assert.equal(payload.owner_id, "user-123");
+  assert.deepEqual(payload.terms, terms);
+  assert.match(payload.updated_at, /^\d{4}-\d{2}-\d{2}T/);
 });
