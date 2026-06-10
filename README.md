@@ -80,6 +80,7 @@ http://localhost:8000
 | `scripts/cloudSync.js` | 云端同步逻辑 | 负责注册、登录、上传词条、下载词条 |
 | `scripts/supabaseClient.js` | Supabase 客户端 | 用项目 URL 和 publishable key 连接真实云服务 |
 | `scripts/supabaseConfig.js` | Supabase 配置 | 填写 Supabase 项目 URL 和公开 key；不要放 secret key |
+| `scripts/version.js` | 版本检查逻辑 | 比较当前版本和最新版本，读取 `version.json` |
 | `scripts/storage.js` | 本地保存 | 像浏览器里的小本子，负责保存和读取词条 |
 | `scripts/filters.js` | 筛选逻辑 | 决定哪些词条应该显示，处理搜索、分类、学习状态 |
 | `scripts/render.js` | 页面渲染 | 把数据变成看得见的词条卡片 |
@@ -177,3 +178,16 @@ V7 新增文件：
 | `docs/v7-supabase-schema.sql` | 数据库建表 SQL | 在 Supabase SQL Editor 中执行，创建云端词条备份表和权限规则 |
 
 注意：`publishable key` 或 legacy `anon key` 可以用于前端；`service_role` / `secret key` 不能放进前端，也不要提交到 GitHub。
+
+## V8 版本发布系统
+
+V8 新增“版本与更新”区域，用来学习一个产品如何发布、检查更新、记录变化和准备回滚。
+
+V8 新增文件：
+
+| 文件 / 模块 | 中文用途 | 新手理解 |
+|---|---|---|
+| `version.json` | 最新版本信息 | 应用检查更新时读取的版本说明 |
+| `CHANGELOG.md` | 更新日志 | 按版本记录每次发布改了什么 |
+| `scripts/version.js` | 版本检查逻辑 | 比较当前版本和最新版本 |
+| `docs/v8-release-system.md` | V8 学习说明 | 解释 release、artifact、changelog、回滚和发布检查清单 |

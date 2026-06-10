@@ -7,6 +7,7 @@ import { createTerm, defaultTerms } from "../scripts/data.js";
 import { filterTerms } from "../scripts/filters.js";
 import { exportTermsBackup, getTermsStorageKey, importTermsBackup, loadTerms, loadTermsOrResetIfEmpty, saveTerms, resetTerms } from "../scripts/storage.js";
 import { updateTermContent } from "../scripts/termActions.js";
+import { compareVersions } from "../scripts/version.js";
 
 function createFakeStorage() {
   const data = new Map();
@@ -175,4 +176,10 @@ test("云端同步 payload 会带上用户 id、词条和更新时间", () => {
   assert.equal(payload.owner_id, "user-123");
   assert.deepEqual(payload.terms, terms);
   assert.match(payload.updated_at, /^\d{4}-\d{2}-\d{2}T/);
+});
+
+test("版本比较可以判断当前、过期和开发版", () => {
+  assert.equal(compareVersions("1.3.0", "1.3.0"), "current");
+  assert.equal(compareVersions("1.2.0", "1.3.0"), "outdated");
+  assert.equal(compareVersions("1.4.0", "1.3.0"), "ahead");
 });

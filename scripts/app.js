@@ -11,6 +11,7 @@ import {
 } from "./cloudSync.js";
 import { createSupabaseClient, isSupabaseConfigured } from "./supabaseClient.js";
 import { exportTermsBackup, importTermsBackup, loadTerms, loadTermsOrResetIfEmpty, resetTerms, saveTerms } from "./storage.js";
+import { CURRENT_VERSION, compareVersions, fetchLatestVersion } from "./version.js";
 import { renderTerms } from "./render.js";
 import { updateTermContent } from "./termActions.js";
 
@@ -52,6 +53,11 @@ const uploadCloudButton = document.querySelector("#uploadCloudButton");
 const downloadCloudButton = document.querySelector("#downloadCloudButton");
 const cloudSignOutButton = document.querySelector("#cloudSignOutButton");
 const cloudMessage = document.querySelector("#cloudMessage");
+const currentVersionLabel = document.querySelector("#currentVersionLabel");
+const latestVersionLabel = document.querySelector("#latestVersionLabel");
+const checkUpdateButton = document.querySelector("#checkUpdateButton");
+const versionChanges = document.querySelector("#versionChanges");
+const versionMessage = document.querySelector("#versionMessage");
 
 const state = {
   currentUser: loadSession(window.localStorage),
@@ -132,6 +138,25 @@ function showCloudMessage(message, type = "error") {
   cloudMessage.textContent = message;
   cloudMessage.dataset.type = type;
   cloudMessage.hidden = !message;
+}
+
+function showVersionMessage(message, type = "error") {
+  versionMessage.textContent = message;
+  versionMessage.dataset.type = type;
+  versionMessage.hidden = !message;
+}
+
+function renderVersionChanges(changes = []) {
+  versionChanges.innerHTML = "";
+  changes.forEach((change) => {
+    const item = document.createElement("li");
+    item.textContent = change;
+    versionChanges.append(item);
+  });
+}
+
+function renderCurrentVersion() {
+  currentVersionLabel.textContent = `当前版本：v${CURRENT_VERSION}`;
 }
 
 function setCloudButtonsDisabled(isDisabled) {
@@ -485,6 +510,33 @@ cloudSignOutButton.addEventListener("click", async () => {
   }
 });
 
+checkUpdateButton.addEventListener("click", async () => {
+  checkUpdateButton.disabled = true;
+  showVersionMessage("正在检查最新版本...", "success");
+  try {
+    const latest = await fetchLatestVersion();
+    const status = compareVersions(CURRENT_VERSION, latest.version);
+    latestVersionLabel.textContent = `最新版本：v${latest.version}（${latest.codename}）`;
+    renderVersionChanges(latest.changes);
+
+    if (status === "outdated") {
+      showVersionMessage("发现新版本。Web 版请刷新页面；桌面版请到 GitHub Release 下载新版。", "success");
+      return;
+    }
+
+    if (status === "ahead") {
+      showVersionMessage("当前本地版本比线上版本更新，通常说明你正在测试开发版。", "success");
+      return;
+    }
+
+    showVersionMessage("当前已经是最新版本。", "success");
+  } catch (error) {
+    showVersionMessage(error.message);
+  } finally {
+    checkUpdateButton.disabled = false;
+  }
+});
+
 // Service Worker 让网页具备离线缓存能力。失败时不影响正常在线使用。
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js").catch(() => {
@@ -493,4 +545,5 @@ if ("serviceWorker" in navigator) {
 }
 
 renderApp();
+renderCurrentVersion();
 refreshCloudUser();

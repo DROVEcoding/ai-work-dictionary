@@ -129,6 +129,21 @@
       <p class="form-message" id="cloudMessage" hidden></p>
     </section>
 
+    <section class="version-panel" aria-label="版本与更新">
+      <div>
+        <p class="eyebrow">Release System</p>
+        <h2>版本与更新</h2>
+        <p class="version-copy">V8 用版本中心学习 release、changelog、更新检查和回滚。Web 版通常刷新即可获得最新版本。</p>
+      </div>
+      <div class="version-status">
+        <span id="currentVersionLabel">当前版本：读取中</span>
+        <span id="latestVersionLabel">最新版本：未检查</span>
+        <button class="secondary-button" id="checkUpdateButton" type="button">检查更新</button>
+      </div>
+      <ul class="version-changes" id="versionChanges"></ul>
+      <p class="form-message" id="versionMessage" hidden></p>
+    </section>
+
     <section class="toolbar" aria-label="词典工具">
       <label class="search-label" for="searchInput">搜索词汇</label>
       <input id="searchInput" class="search-input" type="search" placeholder="例如：CLI、Commit、分支">

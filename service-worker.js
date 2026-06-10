@@ -1,9 +1,10 @@
-const CACHE_NAME = "ai-work-dictionary-v7";
+const CACHE_NAME = "ai-work-dictionary-v8";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css",
   "./manifest.json",
+  "./version.json",
   "./scripts/app.js",
   "./scripts/auth.js",
   "./scripts/cloudSync.js",
@@ -14,6 +15,7 @@ const APP_SHELL = [
   "./scripts/supabaseClient.js",
   "./scripts/supabaseConfig.js",
   "./scripts/termActions.js",
+  "./scripts/version.js",
   "./icons/icon.svg"
 ];
 
