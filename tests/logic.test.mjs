@@ -1,9 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import { clearSession, createLocalUser, loadSession, saveSession } from "../scripts/auth.js";
 import { createTerm, defaultTerms } from "../scripts/data.js";
 import { filterTerms } from "../scripts/filters.js";
-import { exportTermsBackup, importTermsBackup, loadTerms, saveTerms, resetTerms } from "../scripts/storage.js";
+import { exportTermsBackup, getTermsStorageKey, importTermsBackup, loadTerms, saveTerms, resetTerms } from "../scripts/storage.js";
 import { updateTermContent } from "../scripts/termActions.js";
 
 function createFakeStorage() {
@@ -114,4 +115,44 @@ test("可以从有效备份导入词条，并拒绝坏格式", () => {
   const badImport = importTermsBackup("{ bad json");
   assert.equal(badImport.ok, false);
   assert.equal(badImport.terms, null);
+});
+
+test("本地模拟登录会创建可保存的用户 session", () => {
+  const storage = createFakeStorage();
+  const result = createLocalUser("  DROVE  ");
+
+  assert.equal(result.ok, true);
+  assert.equal(result.user.displayName, "DROVE");
+  assert.equal(result.user.mode, "local-demo");
+
+  saveSession(storage, result.user);
+  assert.deepEqual(loadSession(storage), result.user);
+
+  clearSession(storage);
+  assert.equal(loadSession(storage), null);
+});
+
+test("无效用户名不会创建本地模拟用户", () => {
+  const result = createLocalUser("A");
+
+  assert.equal(result.ok, false);
+  assert.equal(result.user, null);
+});
+
+test("不同本地用户使用不同的词条保存位置", () => {
+  const storage = createFakeStorage();
+  const alice = createLocalUser("Alice").user;
+  const bob = createLocalUser("Bob").user;
+  const aliceTerm = createTerm({
+    term: "Session",
+    category: "ai",
+    definition: "登录状态。",
+    solves: "记住当前用户。"
+  });
+
+  saveTerms(storage, [aliceTerm], alice.id);
+
+  assert.equal(getTermsStorageKey(alice.id), "ai-learning-dictionary-v2:user:alice");
+  assert.equal(loadTerms(storage, defaultTerms, alice.id)[0].term, "Session");
+  assert.equal(loadTerms(storage, defaultTerms, bob.id).length, defaultTerms.length);
 });

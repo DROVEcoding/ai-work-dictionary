@@ -76,6 +76,7 @@ http://localhost:8000
 | `index.html` | 页面结构 | 决定页面上有哪些区域，比如标题、表单、筛选按钮、词条列表 |
 | `style.css` | 页面样式 | 决定页面长什么样，比如颜色、间距、卡片、按钮、手机适配 |
 | `scripts/data.js` | 默认词库 | 存放初始 20 个词条，以及分类和学习状态的中文名称 |
+| `scripts/auth.js` | 本地模拟登录 | 保存当前用户 session，用来学习账号登录的基本概念 |
 | `scripts/storage.js` | 本地保存 | 像浏览器里的小本子，负责保存和读取词条 |
 | `scripts/filters.js` | 筛选逻辑 | 决定哪些词条应该显示，处理搜索、分类、学习状态 |
 | `scripts/render.js` | 页面渲染 | 把数据变成看得见的词条卡片 |
@@ -139,3 +140,21 @@ V5 新增的桌面相关文件：
 | `desktop/main.cjs` | Electron 主进程入口 | 创建桌面窗口，并加载现有网页 `index.html`。 |
 | `.github/workflows/desktop-build.yml` | 云端桌面构建流程 | 当本地下载 Electron 太慢时，让 GitHub 在云端打包 Windows 便携版。 |
 | `docs/v5-electron-desktop.md` | V5 学习说明 | 解释 Electron、打包、构建产物和真实产品限制。 |
+
+## V6A 本地模拟登录
+
+V6A 新增“本地学习账号”。它的目标不是做真实商业登录，而是先学习账号系统的几个基础概念：
+
+- `user`：当前是谁在使用应用；
+- `session`：浏览器记住“当前已进入哪个用户”的状态；
+- `logout`：退出当前 session；
+- `data isolation`：不同用户使用不同的本地词条保存位置。
+
+注意：V6A 没有密码、没有服务器、没有数据库，不适合作为真实客户账号系统。真实登录会在后续版本继续学习。
+
+V6A 新增文件：
+
+| 文件 / 模块 | 中文用途 | 新手理解 |
+|---|---|---|
+| `scripts/auth.js` | 本地模拟登录模块 | 负责创建本地用户、保存 session、退出登录 |
+| `docs/v6a-local-auth.md` | V6A 学习说明 | 解释本地模拟登录和真实登录的区别 |

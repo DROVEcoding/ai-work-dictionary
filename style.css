@@ -92,6 +92,64 @@ h1 {
   margin-bottom: 20px;
 }
 
+.auth-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+  gap: 18px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.auth-panel h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.auth-copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.auth-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-weight: 700;
+}
+
+.auth-form input {
+  width: 100%;
+  border: 1px solid #c6d1df;
+  border-radius: 8px;
+  padding: 11px 12px;
+  font: inherit;
+  color: var(--text);
+  background: #fbfcff;
+}
+
+.auth-session {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  align-items: center;
+  color: var(--text);
+  font-weight: 700;
+}
+
 .manager-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -401,6 +459,7 @@ h1 {
 
 @media (max-width: 860px) {
   .hero,
+  .auth-panel,
   .backup-panel,
   .dictionary-grid,
   .term-form {
@@ -408,6 +467,14 @@ h1 {
   }
 
   .backup-actions {
+    justify-content: flex-start;
+  }
+
+  .auth-form {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-session {
     justify-content: flex-start;
   }
 

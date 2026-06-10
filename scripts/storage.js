@@ -2,6 +2,10 @@ export const STORAGE_KEY = "ai-learning-dictionary-v2";
 const BACKUP_APP = "ai-work-dictionary";
 const BACKUP_VERSION = 1;
 
+export function getTermsStorageKey(userId = null) {
+  return userId ? `${STORAGE_KEY}:user:${userId}` : STORAGE_KEY;
+}
+
 function cloneTerms(terms) {
   return terms.map((term) => ({ ...term }));
 }
@@ -19,9 +23,9 @@ function isValidTerm(term) {
   );
 }
 
-export function loadTerms(storage, fallbackTerms) {
+export function loadTerms(storage, fallbackTerms, userId = null) {
   try {
-    const saved = storage.getItem(STORAGE_KEY);
+    const saved = storage.getItem(getTermsStorageKey(userId));
     if (!saved) {
       return cloneTerms(fallbackTerms);
     }
@@ -37,13 +41,13 @@ export function loadTerms(storage, fallbackTerms) {
   }
 }
 
-export function saveTerms(storage, terms) {
-  storage.setItem(STORAGE_KEY, JSON.stringify(terms));
+export function saveTerms(storage, terms, userId = null) {
+  storage.setItem(getTermsStorageKey(userId), JSON.stringify(terms));
 }
 
-export function resetTerms(storage, defaultTerms) {
+export function resetTerms(storage, defaultTerms, userId = null) {
   const freshTerms = cloneTerms(defaultTerms);
-  saveTerms(storage, freshTerms);
+  saveTerms(storage, freshTerms, userId);
   return freshTerms;
 }
 

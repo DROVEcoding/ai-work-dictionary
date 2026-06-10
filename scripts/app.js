@@ -1,9 +1,16 @@
 import { categoryLabels, createTerm, defaultTerms, statusLabels } from "./data.js";
 import { filterTerms } from "./filters.js";
+import { clearSession, createLocalUser, loadSession, saveSession } from "./auth.js";
 import { exportTermsBackup, importTermsBackup, loadTerms, resetTerms, saveTerms } from "./storage.js";
 import { renderTerms } from "./render.js";
 import { updateTermContent } from "./termActions.js";
 
+const loginForm = document.querySelector("#loginForm");
+const usernameInput = document.querySelector("#usernameInput");
+const authSession = document.querySelector("#authSession");
+const userDisplay = document.querySelector("#userDisplay");
+const logoutButton = document.querySelector("#logoutButton");
+const loginMessage = document.querySelector("#loginMessage");
 const grid = document.querySelector("#dictionaryGrid");
 const searchInput = document.querySelector("#searchInput");
 const categoryButtons = document.querySelectorAll("[data-category]");
@@ -26,12 +33,15 @@ const importInput = document.querySelector("#importInput");
 const backupMessage = document.querySelector("#backupMessage");
 
 const state = {
-  terms: loadTerms(window.localStorage, defaultTerms),
+  currentUser: loadSession(window.localStorage),
+  terms: [],
   category: "all",
   status: "all",
   query: "",
   editingTermId: null
 };
+
+state.terms = loadTerms(window.localStorage, defaultTerms, state.currentUser?.id);
 
 function setActiveButton(buttons, activeValue, dataName) {
   buttons.forEach((button) => {
@@ -40,6 +50,8 @@ function setActiveButton(buttons, activeValue, dataName) {
 }
 
 function renderApp() {
+  renderAuth();
+
   const visibleTerms = filterTerms(state.terms, {
     query: state.query,
     category: state.category,
@@ -58,7 +70,29 @@ function renderApp() {
 }
 
 function persistAndRender() {
-  saveTerms(window.localStorage, state.terms);
+  saveTerms(window.localStorage, state.terms, state.currentUser?.id);
+  renderApp();
+}
+
+function showLoginMessage(message, type = "error") {
+  loginMessage.textContent = message;
+  loginMessage.dataset.type = type;
+  loginMessage.hidden = !message;
+}
+
+function renderAuth() {
+  const isLoggedIn = Boolean(state.currentUser);
+  loginForm.hidden = isLoggedIn;
+  authSession.hidden = !isLoggedIn;
+  userDisplay.textContent = isLoggedIn
+    ? `当前用户：${state.currentUser.displayName}`
+    : "";
+}
+
+function switchUser(user) {
+  state.currentUser = user;
+  state.terms = loadTerms(window.localStorage, defaultTerms, state.currentUser?.id);
+  exitEditMode();
   renderApp();
 }
 
@@ -213,7 +247,7 @@ resetButton.addEventListener("click", () => {
     return;
   }
 
-  state.terms = resetTerms(window.localStorage, defaultTerms);
+  state.terms = resetTerms(window.localStorage, defaultTerms, state.currentUser?.id);
   showFormMessage("已重置为默认词库。", "success");
   renderApp();
 });
@@ -247,11 +281,32 @@ importInput.addEventListener("change", async () => {
   }
 
   state.terms = result.terms;
-  saveTerms(window.localStorage, state.terms);
+  saveTerms(window.localStorage, state.terms, state.currentUser?.id);
   exitEditMode();
   renderApp();
   showBackupMessage(`导入成功，共恢复 ${state.terms.length} 个词条。`, "success");
   importInput.value = "";
+});
+
+loginForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const result = createLocalUser(usernameInput.value);
+  if (!result.ok) {
+    showLoginMessage(result.message);
+    return;
+  }
+
+  saveSession(window.localStorage, result.user);
+  usernameInput.value = "";
+  showLoginMessage(`已进入 ${result.user.displayName} 的本地学习空间。`, "success");
+  switchUser(result.user);
+});
+
+logoutButton.addEventListener("click", () => {
+  clearSession(window.localStorage);
+  showLoginMessage("已退出本地学习账号。", "success");
+  switchUser(null);
 });
 
 // Service Worker 让网页具备离线缓存能力。失败时不影响正常在线使用。

@@ -22,6 +22,26 @@
       </div>
     </section>
 
+    <section class="auth-panel" aria-label="本地模拟登录">
+      <div>
+        <p class="eyebrow">Local Account Demo</p>
+        <h2>本地学习账号</h2>
+        <p class="auth-copy">V6A 用本地模拟登录学习账号概念：它不会连接服务器，也不适合作为真实密码系统。</p>
+      </div>
+      <form class="auth-form" id="loginForm">
+        <label>
+          <span>用户名</span>
+          <input id="usernameInput" type="text" autocomplete="username" placeholder="例如：DROVE">
+        </label>
+        <button class="primary-button" type="submit">进入</button>
+      </form>
+      <div class="auth-session" id="authSession" hidden>
+        <span id="userDisplay"></span>
+        <button class="secondary-button" id="logoutButton" type="button">退出</button>
+      </div>
+      <p class="form-message" id="loginMessage" hidden></p>
+    </section>
+
     <section class="manager-panel" aria-label="新增词条">
       <div class="section-heading">
         <div>
