@@ -10,6 +10,31 @@
 </head>
 <body>
   <main class="page-shell">
+    <section class="entry-view" id="entryView" aria-label="登录入口">
+      <div class="entry-copy">
+        <p class="eyebrow">AI Work Dictionary</p>
+        <h1>进入 AI 学习词典</h1>
+        <p class="intro">V9A 把身份入口独立出来：你可以登录云端账号，也可以先用访客模式体验。</p>
+      </div>
+      <form class="entry-form" id="cloudAuthForm">
+        <label>
+          <span>邮箱</span>
+          <input id="cloudEmailInput" type="email" autocomplete="email" placeholder="you@example.com">
+        </label>
+        <label>
+          <span>密码</span>
+          <input id="cloudPasswordInput" type="password" autocomplete="current-password" placeholder="至少 6 位">
+        </label>
+        <div class="entry-actions">
+          <button class="primary-button" id="cloudSignInButton" type="submit">登录云端</button>
+          <button class="secondary-button" id="cloudSignUpButton" type="button">注册云端账号</button>
+          <button class="secondary-button" id="guestModeButton" type="button">访客模式</button>
+        </div>
+        <p class="form-message" id="cloudMessage" hidden></p>
+      </form>
+    </section>
+
+    <div class="app-view" id="appView" hidden>
     <section class="hero">
       <div>
         <p class="eyebrow">GitHub + AI Coding</p>
@@ -23,24 +48,9 @@
       </div>
     </section>
 
-    <section class="auth-panel" aria-label="本地模拟登录">
-      <div>
-        <p class="eyebrow">Local Account Demo</p>
-        <h2>本地学习账号</h2>
-        <p class="auth-copy">V6A 用本地模拟登录学习账号概念：它不会连接服务器，也不适合作为真实密码系统。</p>
-      </div>
-      <form class="auth-form" id="loginForm">
-        <label>
-          <span>用户名</span>
-          <input id="usernameInput" type="text" autocomplete="username" placeholder="例如：DROVE">
-        </label>
-        <button class="primary-button" type="submit">进入</button>
-      </form>
-      <div class="auth-session" id="authSession" hidden>
-        <span id="userDisplay"></span>
-        <button class="secondary-button" id="logoutButton" type="button">退出</button>
-      </div>
-      <p class="form-message" id="loginMessage" hidden></p>
+    <section class="identity-bar" aria-label="当前身份">
+      <span id="identityLabel">访客模式</span>
+      <button class="secondary-button" id="exitIdentityButton" type="button">退出到登录页</button>
     </section>
 
     <section class="manager-panel" aria-label="新增词条">
@@ -102,24 +112,10 @@
       <div>
         <p class="eyebrow">Supabase Cloud Sync</p>
         <h2>云端同步</h2>
-        <p class="cloud-copy">V7 使用真实 Supabase 项目学习云端账号、数据库和同步。未配置前，这里会保持教学提示状态。</p>
+        <p class="cloud-copy">登录云端账号后，可以把当前词条上传到 Supabase，也可以从云端恢复。</p>
       </div>
-      <form class="cloud-form" id="cloudAuthForm">
-        <label>
-          <span>邮箱</span>
-          <input id="cloudEmailInput" type="email" autocomplete="email" placeholder="you@example.com">
-        </label>
-        <label>
-          <span>密码</span>
-          <input id="cloudPasswordInput" type="password" autocomplete="current-password" placeholder="至少 6 位">
-        </label>
-        <div class="cloud-actions">
-          <button class="primary-button" id="cloudSignInButton" type="submit">登录云端</button>
-          <button class="secondary-button" id="cloudSignUpButton" type="button">注册云端账号</button>
-        </div>
-      </form>
-      <div class="cloud-session" id="cloudSession" hidden>
-        <span id="cloudUserDisplay"></span>
+      <div class="cloud-session" id="cloudSession">
+        <span id="cloudUserDisplay">当前为访客模式，云端同步需要登录。</span>
         <div class="cloud-actions">
           <button class="primary-button" id="uploadCloudButton" type="button">上传到云端</button>
           <button class="secondary-button" id="downloadCloudButton" type="button">从云端恢复</button>
@@ -165,6 +161,7 @@
 
     <section class="dictionary-grid" id="dictionaryGrid" aria-live="polite"></section>
     <p class="empty-state" id="emptyState" hidden>没有找到匹配的词。换个关键词试试。</p>
+    </div>
   </main>
 
   <script type="module" src="scripts/app.js"></script>

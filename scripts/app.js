@@ -1,6 +1,5 @@
 import { categoryLabels, createTerm, defaultTerms, statusLabels } from "./data.js";
 import { filterTerms } from "./filters.js";
-import { clearSession, createLocalUser, loadSession, saveSession } from "./auth.js";
 import {
   downloadTermsFromCloud,
   getCloudUser,
@@ -16,12 +15,11 @@ import { renderTerms } from "./render.js";
 import { updateTermContent } from "./termActions.js";
 
 const supabase = await createSupabaseClient();
-const loginForm = document.querySelector("#loginForm");
-const usernameInput = document.querySelector("#usernameInput");
-const authSession = document.querySelector("#authSession");
-const userDisplay = document.querySelector("#userDisplay");
-const logoutButton = document.querySelector("#logoutButton");
-const loginMessage = document.querySelector("#loginMessage");
+const entryView = document.querySelector("#entryView");
+const appView = document.querySelector("#appView");
+const guestModeButton = document.querySelector("#guestModeButton");
+const identityLabel = document.querySelector("#identityLabel");
+const exitIdentityButton = document.querySelector("#exitIdentityButton");
 const grid = document.querySelector("#dictionaryGrid");
 const searchInput = document.querySelector("#searchInput");
 const categoryButtons = document.querySelectorAll("[data-category]");
@@ -60,8 +58,8 @@ const versionChanges = document.querySelector("#versionChanges");
 const versionMessage = document.querySelector("#versionMessage");
 
 const state = {
-  currentUser: loadSession(window.localStorage),
   cloudUser: null,
+  isGuestMode: false,
   terms: [],
   category: "all",
   status: "all",
@@ -78,7 +76,7 @@ function setActiveButton(buttons, activeValue, dataName) {
 }
 
 function renderApp() {
-  renderAuth();
+  renderIdentity();
   renderCloudAuth();
 
   const visibleTerms = filterTerms(state.terms, {
@@ -105,16 +103,12 @@ function persistAndRender() {
 }
 
 function getActiveTermsUserId() {
-  return state.cloudUser ? `cloud:${state.cloudUser.id}` : state.currentUser?.id;
+  return state.cloudUser ? `cloud:${state.cloudUser.id}` : null;
 }
 
 function getActiveWorkspaceLabel() {
   if (state.cloudUser) {
     return `云端空间：${state.cloudUser.email}`;
-  }
-
-  if (state.currentUser) {
-    return `本地空间：${state.currentUser.displayName}`;
   }
 
   return "访客本地空间";
@@ -126,12 +120,6 @@ function loadCurrentWorkspaceTerms() {
 
 function loadLocalFallbackTermsAfterCloudSignOut() {
   return loadTermsOrResetIfEmpty(window.localStorage, defaultTerms, getActiveTermsUserId());
-}
-
-function showLoginMessage(message, type = "error") {
-  loginMessage.textContent = message;
-  loginMessage.dataset.type = type;
-  loginMessage.hidden = !message;
 }
 
 function showCloudMessage(message, type = "error") {
@@ -169,41 +157,36 @@ function setCloudButtonsDisabled(isDisabled) {
   });
 }
 
-function renderAuth() {
-  const isLoggedIn = Boolean(state.currentUser);
-  loginForm.hidden = isLoggedIn;
-  authSession.hidden = !isLoggedIn;
-  userDisplay.textContent = isLoggedIn
-    ? `当前用户：${state.currentUser.displayName}`
-    : "";
+function renderIdentity() {
+  const hasIdentity = state.isGuestMode || Boolean(state.cloudUser);
+  entryView.hidden = hasIdentity;
+  appView.hidden = !hasIdentity;
+  identityLabel.textContent = state.cloudUser
+    ? `云端账号：${state.cloudUser.email}`
+    : "访客模式";
 }
 
 function renderCloudAuth() {
   const isConfigured = isSupabaseConfigured();
   const isLoggedIn = Boolean(state.cloudUser);
 
-  cloudAuthForm.hidden = !isConfigured || isLoggedIn;
-  cloudSession.hidden = !isLoggedIn;
   cloudUserDisplay.textContent = isLoggedIn
     ? `云端账号：${state.cloudUser.email}`
-    : "";
+    : "当前为访客模式，云端同步需要登录。";
+  uploadCloudButton.disabled = !isLoggedIn;
+  downloadCloudButton.disabled = !isLoggedIn;
+  cloudSignOutButton.hidden = !isLoggedIn;
 
   if (!isConfigured) {
     showCloudMessage("Supabase 还没有配置。请先按 V7 文档创建项目、建表，并填写 scripts/supabaseConfig.js。");
   }
 }
 
-function switchUser(user) {
-  state.currentUser = user;
-  state.terms = loadCurrentWorkspaceTerms();
-  exitEditMode();
-  renderApp();
-}
-
 async function refreshCloudUser() {
   const result = await getCloudUser(supabase);
   state.cloudUser = result.ok ? result.user : null;
   if (result.ok) {
+    state.isGuestMode = false;
     state.terms = loadCurrentWorkspaceTerms();
     exitEditMode();
     showCloudMessage(result.message, "success");
@@ -403,25 +386,25 @@ importInput.addEventListener("change", async () => {
   importInput.value = "";
 });
 
-loginForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-
-  const result = createLocalUser(usernameInput.value);
-  if (!result.ok) {
-    showLoginMessage(result.message);
-    return;
-  }
-
-  saveSession(window.localStorage, result.user);
-  usernameInput.value = "";
-  showLoginMessage(`已进入 ${result.user.displayName} 的本地学习空间。`, "success");
-  switchUser(result.user);
+guestModeButton.addEventListener("click", () => {
+  state.isGuestMode = true;
+  state.cloudUser = null;
+  state.terms = loadLocalFallbackTermsAfterCloudSignOut();
+  showCloudMessage("");
+  renderApp();
 });
 
-logoutButton.addEventListener("click", () => {
-  clearSession(window.localStorage);
-  showLoginMessage("已退出本地学习账号。", "success");
-  switchUser(null);
+exitIdentityButton.addEventListener("click", async () => {
+  if (state.cloudUser) {
+    await signOutCloudUser(supabase);
+  }
+
+  state.cloudUser = null;
+  state.isGuestMode = false;
+  state.terms = loadLocalFallbackTermsAfterCloudSignOut();
+  exitEditMode();
+  showCloudMessage("");
+  renderApp();
 });
 
 cloudAuthForm.addEventListener("submit", async (event) => {
@@ -433,6 +416,7 @@ cloudAuthForm.addEventListener("submit", async (event) => {
     const result = await signInCloudUser(supabase, cloudEmailInput.value, cloudPasswordInput.value);
     showCloudMessage(result.message, result.ok ? "success" : "error");
     if (result.ok) {
+      state.isGuestMode = false;
       cloudPasswordInput.value = "";
       await refreshCloudUser();
     }
