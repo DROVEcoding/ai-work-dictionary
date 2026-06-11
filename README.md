@@ -78,6 +78,7 @@ http://localhost:8000
 | `scripts/data.js` | 默认词库 | 存放初始 20 个词条，以及分类和学习状态的中文名称 |
 | `scripts/auth.js` | 本地模拟登录 | 保存当前用户 session，用来学习账号登录的基本概念 |
 | `scripts/cloudSync.js` | 云端同步逻辑 | 负责注册、登录、上传词条、下载词条 |
+| `scripts/permissions.js` | 权限逻辑 | 读取角色、判断管理员、读取/发布公共词库 |
 | `scripts/supabaseClient.js` | Supabase 客户端 | 用项目 URL 和 publishable key 连接真实云服务 |
 | `scripts/supabaseConfig.js` | Supabase 配置 | 填写 Supabase 项目 URL 和公开 key；不要放 secret key |
 | `scripts/version.js` | 版本检查逻辑 | 比较当前版本和最新版本，读取 `version.json` |
@@ -207,3 +208,19 @@ V9A 新增文件：
 | 文件 / 模块 | 中文用途 | 新手理解 |
 |---|---|---|
 | `docs/v9a-auth-entry.md` | V9A 学习说明 | 解释为什么权限系统前要先整理登录入口 |
+
+## V9B 权限系统
+
+V9B 新增角色和公共词库：
+
+- 普通用户可以读取公共词库；
+- 管理员可以发布当前词条为公共词库；
+- 真正的权限限制写在 Supabase RLS 里，不只靠前端按钮。
+
+V9B 新增文件：
+
+| 文件 / 模块 | 中文用途 | 新手理解 |
+|---|---|---|
+| `scripts/permissions.js` | 权限和公共词库逻辑 | 判断当前用户是不是管理员，并和 Supabase 公共词库表通信 |
+| `docs/v9b-permissions-schema.sql` | 权限数据库 SQL | 在 Supabase 中创建 `profiles`、`public_terms`、RLS 策略 |
+| `docs/v9b-permissions.md` | V9B 学习说明 | 解释 RBAC、RLS、管理员和普通用户 |

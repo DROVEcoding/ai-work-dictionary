@@ -11,6 +11,7 @@ import {
 import { createSupabaseClient, isSupabaseConfigured } from "./supabaseClient.js";
 import { exportTermsBackup, importTermsBackup, loadTerms, loadTermsOrResetIfEmpty, resetTerms, saveTerms } from "./storage.js";
 import { CURRENT_VERSION, compareVersions, fetchLatestVersion } from "./version.js";
+import { canManagePublicTerms, getRoleLabel, loadProfile, loadPublicTerms, publishPublicTerms } from "./permissions.js";
 import { renderTerms } from "./render.js";
 import { updateTermContent } from "./termActions.js";
 
@@ -51,6 +52,10 @@ const uploadCloudButton = document.querySelector("#uploadCloudButton");
 const downloadCloudButton = document.querySelector("#downloadCloudButton");
 const cloudSignOutButton = document.querySelector("#cloudSignOutButton");
 const cloudMessage = document.querySelector("#cloudMessage");
+const roleLabel = document.querySelector("#roleLabel");
+const loadPublicTermsButton = document.querySelector("#loadPublicTermsButton");
+const publishPublicTermsButton = document.querySelector("#publishPublicTermsButton");
+const permissionsMessage = document.querySelector("#permissionsMessage");
 const currentVersionLabel = document.querySelector("#currentVersionLabel");
 const latestVersionLabel = document.querySelector("#latestVersionLabel");
 const checkUpdateButton = document.querySelector("#checkUpdateButton");
@@ -59,6 +64,7 @@ const versionMessage = document.querySelector("#versionMessage");
 
 const state = {
   cloudUser: null,
+  profile: null,
   isGuestMode: false,
   terms: [],
   category: "all",
@@ -78,6 +84,7 @@ function setActiveButton(buttons, activeValue, dataName) {
 function renderApp() {
   renderIdentity();
   renderCloudAuth();
+  renderPermissions();
 
   const visibleTerms = filterTerms(state.terms, {
     query: state.query,
@@ -134,6 +141,12 @@ function showVersionMessage(message, type = "error") {
   versionMessage.hidden = !message;
 }
 
+function showPermissionsMessage(message, type = "error") {
+  permissionsMessage.textContent = message;
+  permissionsMessage.dataset.type = type;
+  permissionsMessage.hidden = !message;
+}
+
 function renderVersionChanges(changes = []) {
   versionChanges.innerHTML = "";
   changes.forEach((change) => {
@@ -155,6 +168,18 @@ function setCloudButtonsDisabled(isDisabled) {
   cloudAuthForm.querySelectorAll("button").forEach((button) => {
     button.disabled = isDisabled;
   });
+}
+
+function renderPermissions() {
+  const isLoggedIn = Boolean(state.cloudUser);
+  const canManage = canManagePublicTerms(state.profile);
+
+  roleLabel.textContent = isLoggedIn
+    ? `当前角色：${getRoleLabel(state.profile?.role)}`
+    : "当前角色：未登录";
+
+  loadPublicTermsButton.disabled = !isLoggedIn;
+  publishPublicTermsButton.hidden = !canManage;
 }
 
 function renderIdentity() {
@@ -186,10 +211,14 @@ async function refreshCloudUser() {
   const result = await getCloudUser(supabase);
   state.cloudUser = result.ok ? result.user : null;
   if (result.ok) {
+    const profileResult = await loadProfile(supabase, result.user);
+    state.profile = profileResult.profile;
     state.isGuestMode = false;
     state.terms = loadCurrentWorkspaceTerms();
     exitEditMode();
-    showCloudMessage(result.message, "success");
+    showCloudMessage(`${result.message} ${profileResult.message}`, "success");
+  } else {
+    state.profile = null;
   }
   renderApp();
 }
@@ -400,6 +429,7 @@ exitIdentityButton.addEventListener("click", async () => {
   }
 
   state.cloudUser = null;
+  state.profile = null;
   state.isGuestMode = false;
   state.terms = loadLocalFallbackTermsAfterCloudSignOut();
   exitEditMode();
@@ -485,12 +515,54 @@ cloudSignOutButton.addEventListener("click", async () => {
   try {
     const result = await signOutCloudUser(supabase);
     state.cloudUser = null;
+    state.profile = null;
     state.terms = loadLocalFallbackTermsAfterCloudSignOut();
     exitEditMode();
     showCloudMessage(result.message, result.ok ? "success" : "error");
     renderApp();
   } finally {
     setCloudButtonsDisabled(false);
+  }
+});
+
+loadPublicTermsButton.addEventListener("click", async () => {
+  if (!state.cloudUser) {
+    showPermissionsMessage("请先登录云端账号。");
+    return;
+  }
+
+  loadPublicTermsButton.disabled = true;
+  showPermissionsMessage("正在读取公共词库...", "success");
+  try {
+    const result = await loadPublicTerms(supabase);
+    if (!result.ok) {
+      showPermissionsMessage(result.message);
+      return;
+    }
+
+    state.terms = result.terms;
+    saveTerms(window.localStorage, state.terms, getActiveTermsUserId());
+    exitEditMode();
+    renderApp();
+    showPermissionsMessage(result.message, "success");
+  } finally {
+    loadPublicTermsButton.disabled = false;
+  }
+});
+
+publishPublicTermsButton.addEventListener("click", async () => {
+  if (!canManagePublicTerms(state.profile)) {
+    showPermissionsMessage("只有管理员可以发布公共词库。");
+    return;
+  }
+
+  publishPublicTermsButton.disabled = true;
+  showPermissionsMessage("正在发布公共词库...", "success");
+  try {
+    const result = await publishPublicTerms(supabase, state.terms);
+    showPermissionsMessage(result.message, result.ok ? "success" : "error");
+  } finally {
+    publishPublicTermsButton.disabled = false;
   }
 });
 

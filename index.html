@@ -125,6 +125,22 @@
       <p class="form-message" id="cloudMessage" hidden></p>
     </section>
 
+    <section class="permissions-panel" aria-label="权限和公共词库">
+      <div>
+        <p class="eyebrow">Roles & Permissions</p>
+        <h2>权限和公共词库</h2>
+        <p class="permissions-copy">V9B 学习普通用户和管理员的区别：所有登录用户可以读取公共词库，管理员可以发布公共词库。</p>
+      </div>
+      <div class="permissions-status">
+        <span id="roleLabel">当前角色：未登录</span>
+        <div class="permissions-actions">
+          <button class="secondary-button" id="loadPublicTermsButton" type="button">读取公共词库</button>
+          <button class="primary-button" id="publishPublicTermsButton" type="button" hidden>发布当前词条为公共词库</button>
+        </div>
+      </div>
+      <p class="form-message" id="permissionsMessage" hidden></p>
+    </section>
+
     <section class="version-panel" aria-label="版本与更新">
       <div>
         <p class="eyebrow">Release System</p>
