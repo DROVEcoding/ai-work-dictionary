@@ -272,3 +272,16 @@ V10C 新增文件：
 |---|---|---|
 | `docs/v10c-member-invites-schema.sql` | 组织成员数据库 SQL | 创建添加成员和读取成员列表的数据库函数，真正检查 owner 权限 |
 | `docs/v10c-member-invites.md` | V10C 学习说明 | 解释成员关系、owner 权限和为什么先不做邮件邀请链接 |
+
+## V10D 成员管理和角色变更
+
+V10D 让组织 owner 可以管理已有成员：把普通成员升级为拥有者，或把普通成员移出组织。
+
+这一版重点学习危险操作保护：权限判断必须写在数据库函数里，不能只靠前端隐藏按钮。
+
+V10D 新增文件：
+
+| 文件 / 模块 | 中文用途 | 新手理解 |
+|---|---|---|
+| `docs/v10d-member-management-schema.sql` | 成员管理数据库 SQL | 创建升级成员和移除成员的数据库函数，保护 owner 权限 |
+| `docs/v10d-member-management.md` | V10D 学习说明 | 解释角色变更、移除成员、最后 owner 保护这些真实 SaaS 问题 |

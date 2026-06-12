@@ -9,7 +9,7 @@ import { exportTermsBackup, getTermsStorageKey, importTermsBackup, loadTerms, lo
 import { updateTermContent } from "../scripts/termActions.js";
 import { compareVersions } from "../scripts/version.js";
 import { canManagePublicTerms, createDefaultProfile, getRoleLabel } from "../scripts/permissions.js";
-import { canManageOrganization, getOrganizationRoleLabel, normalizeMemberEmail } from "../scripts/organizations.js";
+import { canManageMember, canManageOrganization, getOrganizationRoleLabel, normalizeMemberEmail } from "../scripts/organizations.js";
 
 function createFakeStorage() {
   const data = new Map();
@@ -215,4 +215,14 @@ test("组织角色可以区分拥有者和成员", () => {
 
 test("成员邮箱会被标准化后再提交", () => {
   assert.equal(normalizeMemberEmail("  NewUser@Example.COM "), "newuser@example.com");
+});
+
+test("只有 owner 可以管理其他普通成员", () => {
+  const member = { userId: "member-1", role: "member" };
+  const owner = { userId: "owner-1", role: "owner" };
+
+  assert.equal(canManageMember("owner", member, "owner-1"), true);
+  assert.equal(canManageMember("member", member, "owner-1"), false);
+  assert.equal(canManageMember("owner", member, "member-1"), false);
+  assert.equal(canManageMember("owner", owner, "admin-1"), false);
 });
