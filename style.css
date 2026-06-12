@@ -342,6 +342,42 @@ h1 {
   color: #b91c1c;
 }
 
+.audit-log-panel {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.audit-log-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  font-weight: 700;
+}
+
+.audit-log-list {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.audit-log-row {
+  display: grid;
+  gap: 4px;
+  border: 1px solid #dbe5f0;
+  border-radius: 6px;
+  background: #fbfcff;
+  padding: 9px 10px;
+}
+
+.audit-log-time {
+  color: #64748b;
+  font-size: 12px;
+}
+
 .cloud-panel h2 {
   margin: 0 0 8px;
   font-size: 24px;

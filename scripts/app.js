@@ -19,7 +19,9 @@ import {
   canManageMember,
   canManageOrganization,
   createOrganization,
+  getAuditEventLabel,
   getOrganizationRoleLabel,
+  loadOrganizationAuditLogs,
   loadMyOrganizations,
   loadOrganizationMembers,
   promoteOrganizationMember,
@@ -75,6 +77,8 @@ const memberForm = document.querySelector("#memberForm");
 const memberEmailInput = document.querySelector("#memberEmailInput");
 const addMemberButton = document.querySelector("#addMemberButton");
 const memberList = document.querySelector("#memberList");
+const refreshAuditLogsButton = document.querySelector("#refreshAuditLogsButton");
+const auditLogList = document.querySelector("#auditLogList");
 const roleLabel = document.querySelector("#roleLabel");
 const loadPublicTermsButton = document.querySelector("#loadPublicTermsButton");
 const publishPublicTermsButton = document.querySelector("#publishPublicTermsButton");
@@ -90,6 +94,7 @@ const state = {
   profile: null,
   organizations: [],
   organizationMembers: [],
+  organizationAuditLogs: [],
   currentOrganizationId: null,
   isGuestMode: false,
   terms: [],
@@ -204,6 +209,7 @@ function renderOrganizations() {
   organizationSelect.disabled = !isLoggedIn || state.organizations.length === 0;
   addMemberButton.disabled = true;
   memberEmailInput.disabled = true;
+  refreshAuditLogsButton.disabled = true;
 
   organizationSelect.innerHTML = "";
   if (!isLoggedIn) {
@@ -211,6 +217,7 @@ function renderOrganizations() {
     organizationSelect.append(option);
     organizationRoleLabel.textContent = "当前组织角色：未登录";
     renderOrganizationMembers();
+    renderOrganizationAuditLogs();
     return;
   }
 
@@ -219,6 +226,7 @@ function renderOrganizations() {
     organizationSelect.append(option);
     organizationRoleLabel.textContent = "当前组织角色：未选择";
     renderOrganizationMembers();
+    renderOrganizationAuditLogs();
     return;
   }
 
@@ -231,7 +239,9 @@ function renderOrganizations() {
   organizationRoleLabel.textContent = `当前组织角色：${getOrganizationRoleLabel(activeRole)}`;
   addMemberButton.disabled = !canManageOrganization(activeRole);
   memberEmailInput.disabled = !canManageOrganization(activeRole);
+  refreshAuditLogsButton.disabled = false;
   renderOrganizationMembers();
+  renderOrganizationAuditLogs();
 }
 
 function renderOrganizationMembers() {
@@ -291,10 +301,39 @@ function renderOrganizationMembers() {
   });
 }
 
+function renderOrganizationAuditLogs() {
+  auditLogList.innerHTML = "";
+  if (!state.currentOrganizationId) {
+    auditLogList.textContent = "选择组织后显示操作记录。";
+    return;
+  }
+
+  if (state.organizationAuditLogs.length === 0) {
+    auditLogList.textContent = "当前组织还没有操作记录。";
+    return;
+  }
+
+  state.organizationAuditLogs.forEach((log) => {
+    const row = document.createElement("div");
+    row.className = "audit-log-row";
+
+    const summary = document.createElement("span");
+    summary.textContent = `${log.actorEmail} ${getAuditEventLabel(log.eventType)} ${log.targetEmail}`;
+
+    const time = document.createElement("span");
+    time.className = "audit-log-time";
+    time.textContent = new Date(log.createdAt).toLocaleString();
+
+    row.append(summary, time);
+    auditLogList.append(row);
+  });
+}
+
 async function refreshOrganizations() {
   if (!state.cloudUser) {
     state.organizations = [];
     state.organizationMembers = [];
+    state.organizationAuditLogs = [];
     state.currentOrganizationId = null;
     return;
   }
@@ -303,6 +342,7 @@ async function refreshOrganizations() {
   if (!result.ok) {
     state.organizations = [];
     state.organizationMembers = [];
+    state.organizationAuditLogs = [];
     state.currentOrganizationId = null;
     showOrganizationMessage(result.message);
     return;
@@ -313,6 +353,7 @@ async function refreshOrganizations() {
     state.currentOrganizationId = state.organizations[0]?.id || null;
   }
   await refreshOrganizationMembers();
+  await refreshOrganizationAuditLogs();
   showOrganizationMessage(result.message, "success");
 }
 
@@ -324,6 +365,19 @@ async function refreshOrganizationMembers() {
 
   const result = await loadOrganizationMembers(supabase, state.currentOrganizationId);
   state.organizationMembers = result.ok ? result.members : [];
+  if (!result.ok) {
+    showOrganizationMessage(result.message);
+  }
+}
+
+async function refreshOrganizationAuditLogs() {
+  if (!state.cloudUser || !state.currentOrganizationId) {
+    state.organizationAuditLogs = [];
+    return;
+  }
+
+  const result = await loadOrganizationAuditLogs(supabase, state.currentOrganizationId);
+  state.organizationAuditLogs = result.ok ? result.logs : [];
   if (!result.ok) {
     showOrganizationMessage(result.message);
   }
@@ -404,6 +458,7 @@ async function refreshCloudUser() {
     state.profile = null;
     state.organizations = [];
     state.organizationMembers = [];
+    state.organizationAuditLogs = [];
     state.currentOrganizationId = null;
   }
   renderApp();
@@ -607,6 +662,7 @@ guestModeButton.addEventListener("click", () => {
   state.profile = null;
   state.organizations = [];
   state.organizationMembers = [];
+  state.organizationAuditLogs = [];
   state.currentOrganizationId = null;
   state.terms = loadLocalFallbackTermsAfterCloudSignOut();
   showCloudMessage("");
@@ -623,6 +679,7 @@ exitIdentityButton.addEventListener("click", async () => {
   state.profile = null;
   state.organizations = [];
   state.organizationMembers = [];
+  state.organizationAuditLogs = [];
   state.currentOrganizationId = null;
   state.isGuestMode = false;
   state.terms = loadLocalFallbackTermsAfterCloudSignOut();
@@ -653,6 +710,7 @@ organizationForm.addEventListener("submit", async (event) => {
     await refreshOrganizations();
     state.currentOrganizationId = result.organization.id;
     await refreshOrganizationMembers();
+    await refreshOrganizationAuditLogs();
     state.terms = loadCurrentWorkspaceTerms();
     exitEditMode();
     renderApp();
@@ -665,6 +723,7 @@ organizationForm.addEventListener("submit", async (event) => {
 organizationSelect.addEventListener("change", async () => {
   state.currentOrganizationId = organizationSelect.value || null;
   await refreshOrganizationMembers();
+  await refreshOrganizationAuditLogs();
   state.terms = loadCurrentWorkspaceTerms();
   exitEditMode();
   showOrganizationMessage("已切换组织，本地显示当前组织的词库缓存；需要最新云端数据时请点击“从云端恢复”。", "success");
@@ -690,10 +749,23 @@ memberForm.addEventListener("submit", async (event) => {
 
     memberEmailInput.value = "";
     await refreshOrganizationMembers();
+    await refreshOrganizationAuditLogs();
     renderApp();
     showOrganizationMessage(result.message, "success");
   } finally {
     renderApp();
+  }
+});
+
+refreshAuditLogsButton.addEventListener("click", async () => {
+  refreshAuditLogsButton.disabled = true;
+  showOrganizationMessage("正在刷新操作记录...", "success");
+  try {
+    await refreshOrganizationAuditLogs();
+    renderApp();
+    showOrganizationMessage("操作记录已刷新。", "success");
+  } finally {
+    refreshAuditLogsButton.disabled = false;
   }
 });
 
@@ -721,6 +793,7 @@ memberList.addEventListener("click", async (event) => {
     }
 
     await refreshOrganizations();
+    await refreshOrganizationAuditLogs();
     renderApp();
     showOrganizationMessage(result.message, "success");
     return;
@@ -740,6 +813,7 @@ memberList.addEventListener("click", async (event) => {
     }
 
     await refreshOrganizationMembers();
+    await refreshOrganizationAuditLogs();
     renderApp();
     showOrganizationMessage(result.message, "success");
   }
@@ -830,6 +904,7 @@ cloudSignOutButton.addEventListener("click", async () => {
     state.profile = null;
     state.organizations = [];
     state.organizationMembers = [];
+    state.organizationAuditLogs = [];
     state.currentOrganizationId = null;
     state.terms = loadLocalFallbackTermsAfterCloudSignOut();
     exitEditMode();

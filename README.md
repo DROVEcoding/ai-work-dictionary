@@ -285,3 +285,16 @@ V10D 新增文件：
 |---|---|---|
 | `docs/v10d-member-management-schema.sql` | 成员管理数据库 SQL | 创建升级成员和移除成员的数据库函数，保护 owner 权限 |
 | `docs/v10d-member-management.md` | V10D 学习说明 | 解释角色变更、移除成员、最后 owner 保护这些真实 SaaS 问题 |
+
+## V10E 审计日志
+
+V10E 新增组织审计日志，用来记录谁添加了成员、谁升级了成员、谁移除了成员。
+
+这一版重点学习安全可追踪性：权限系统不仅要能控制操作，还要能解释操作历史。
+
+V10E 新增文件：
+
+| 文件 / 模块 | 中文用途 | 新手理解 |
+|---|---|---|
+| `docs/v10e-audit-logs-schema.sql` | 审计日志数据库 SQL | 创建组织操作记录表，并让成员相关数据库函数自动写日志 |
+| `docs/v10e-audit-logs.md` | V10E 学习说明 | 解释 actor、target、event type 和为什么真实产品需要审计日志 |

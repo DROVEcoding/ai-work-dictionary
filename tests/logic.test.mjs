@@ -9,7 +9,7 @@ import { exportTermsBackup, getTermsStorageKey, importTermsBackup, loadTerms, lo
 import { updateTermContent } from "../scripts/termActions.js";
 import { compareVersions } from "../scripts/version.js";
 import { canManagePublicTerms, createDefaultProfile, getRoleLabel } from "../scripts/permissions.js";
-import { canManageMember, canManageOrganization, getOrganizationRoleLabel, normalizeMemberEmail } from "../scripts/organizations.js";
+import { canManageMember, canManageOrganization, getAuditEventLabel, getOrganizationRoleLabel, normalizeMemberEmail } from "../scripts/organizations.js";
 
 function createFakeStorage() {
   const data = new Map();
@@ -225,4 +225,11 @@ test("只有 owner 可以管理其他普通成员", () => {
   assert.equal(canManageMember("member", member, "owner-1"), false);
   assert.equal(canManageMember("owner", member, "member-1"), false);
   assert.equal(canManageMember("owner", owner, "admin-1"), false);
+});
+
+test("审计日志事件类型可以显示为中文", () => {
+  assert.equal(getAuditEventLabel("member_added"), "添加成员");
+  assert.equal(getAuditEventLabel("member_promoted"), "升级成员");
+  assert.equal(getAuditEventLabel("member_removed"), "移除成员");
+  assert.equal(getAuditEventLabel("custom_event"), "custom_event");
 });

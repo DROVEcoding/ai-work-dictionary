@@ -10,6 +10,16 @@ export function canManageMember(currentRole, member, currentUserId) {
   return currentRole === "owner" && member.userId !== currentUserId && member.role === "member";
 }
 
+export function getAuditEventLabel(eventType) {
+  const labels = {
+    member_added: "添加成员",
+    member_promoted: "升级成员",
+    member_removed: "移除成员"
+  };
+
+  return labels[eventType] || eventType;
+}
+
 export function normalizeMemberEmail(email) {
   return email.trim().toLowerCase();
 }
@@ -118,6 +128,35 @@ export async function removeOrganizationMember(supabase, organizationId, memberU
   }
 
   return { ok: true, message: "成员已移出当前组织。" };
+}
+
+export async function loadOrganizationAuditLogs(supabase, organizationId) {
+  if (!organizationId) {
+    return { ok: true, logs: [], message: "还没有选择组织。" };
+  }
+
+  const { data, error } = await supabase
+    .rpc("list_organization_audit_logs", {
+      org_id: organizationId,
+      row_limit: 20
+    });
+
+  if (error) {
+    return { ok: false, logs: [], message: error.message };
+  }
+
+  return {
+    ok: true,
+    logs: (data || []).map((log) => ({
+      id: log.id,
+      eventType: log.event_type,
+      details: log.details || {},
+      createdAt: log.created_at,
+      actorEmail: log.actor_email || "未知用户",
+      targetEmail: log.target_email || "未知对象"
+    })),
+    message: "已读取当前组织审计日志。"
+  };
 }
 
 export async function loadMyOrganizations(supabase) {
