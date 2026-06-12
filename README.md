@@ -298,3 +298,16 @@ V10E 新增文件：
 |---|---|---|
 | `docs/v10e-audit-logs-schema.sql` | 审计日志数据库 SQL | 创建组织操作记录表，并让成员相关数据库函数自动写日志 |
 | `docs/v10e-audit-logs.md` | V10E 学习说明 | 解释 actor、target、event type 和为什么真实产品需要审计日志 |
+
+## V11A GitHub Actions Node 24 维护
+
+V11A 处理 GitHub Pages 部署里的 Node.js 20 弃用提醒，让部署 workflow 提前使用 Node 24。
+
+这一版重点学习 CI/CD 维护：项目不仅要写功能，还要维护自动部署环境。
+
+V11A 新增文件：
+
+| 文件 / 模块 | 中文用途 | 新手理解 |
+|---|---|---|
+| `.github/workflows/pages.yml` | GitHub Pages 自动部署流程 | 每次 `main` 更新后，GitHub 自动把网页发布到 Pages |
+| `docs/v11a-actions-node24.md` | V11A 学习说明 | 解释 CI/CD、workflow、runner、deprecated 和维护任务 |
