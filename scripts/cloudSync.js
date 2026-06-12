@@ -1,8 +1,18 @@
 const CLOUD_TABLE = "term_backups";
+const ORGANIZATION_TERMS_TABLE = "organization_term_backups";
 
 export function createCloudBackupPayload(userId, terms) {
   return {
     owner_id: userId,
+    terms,
+    updated_at: new Date().toISOString()
+  };
+}
+
+export function createOrganizationTermsPayload(organizationId, userId, terms) {
+  return {
+    organization_id: organizationId,
+    updated_by: userId,
     terms,
     updated_at: new Date().toISOString()
   };
@@ -94,5 +104,40 @@ export async function downloadTermsFromCloud(supabase, userId) {
     ok: true,
     terms: data.terms,
     message: `已从云端恢复，云端更新时间：${new Date(data.updated_at).toLocaleString()}。`
+  };
+}
+
+export async function uploadOrganizationTermsToCloud(supabase, organizationId, userId, terms) {
+  const payload = createOrganizationTermsPayload(organizationId, userId, terms);
+  const { error } = await supabase
+    .from(ORGANIZATION_TERMS_TABLE)
+    .upsert(payload, { onConflict: "organization_id" });
+
+  if (error) {
+    return { ok: false, message: error.message };
+  }
+
+  return { ok: true, message: "已上传到当前组织词库。" };
+}
+
+export async function downloadOrganizationTermsFromCloud(supabase, organizationId) {
+  const { data, error } = await supabase
+    .from(ORGANIZATION_TERMS_TABLE)
+    .select("terms, updated_at")
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+
+  if (error) {
+    return { ok: false, terms: null, message: error.message };
+  }
+
+  if (!data) {
+    return { ok: false, terms: null, message: "当前组织还没有云端词库。" };
+  }
+
+  return {
+    ok: true,
+    terms: data.terms,
+    message: `已从当前组织词库恢复，云端更新时间：${new Date(data.updated_at).toLocaleString()}。`
   };
 }

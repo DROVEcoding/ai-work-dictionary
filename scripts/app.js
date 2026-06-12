@@ -2,11 +2,13 @@ import { categoryLabels, createTerm, defaultTerms, statusLabels } from "./data.j
 import { filterTerms } from "./filters.js";
 import {
   downloadTermsFromCloud,
+  downloadOrganizationTermsFromCloud,
   getCloudUser,
   signInCloudUser,
   signOutCloudUser,
   signUpCloudUser,
-  uploadTermsToCloud
+  uploadTermsToCloud,
+  uploadOrganizationTermsToCloud
 } from "./cloudSync.js";
 import { createSupabaseClient, isSupabaseConfigured } from "./supabaseClient.js";
 import { exportTermsBackup, importTermsBackup, loadTerms, loadTermsOrResetIfEmpty, resetTerms, saveTerms } from "./storage.js";
@@ -120,12 +122,21 @@ function persistAndRender() {
 }
 
 function getActiveTermsUserId() {
+  if (state.currentOrganizationId) {
+    return `organization:${state.currentOrganizationId}`;
+  }
+
   return state.cloudUser ? `cloud:${state.cloudUser.id}` : null;
 }
 
 function getActiveWorkspaceLabel() {
+  const currentOrganization = getCurrentOrganization();
+  if (currentOrganization) {
+    return `组织空间：${currentOrganization.name}`;
+  }
+
   if (state.cloudUser) {
-    return `云端空间：${state.cloudUser.email}`;
+    return `个人云端空间：${state.cloudUser.email}`;
   }
 
   return "访客本地空间";
@@ -289,8 +300,8 @@ async function refreshCloudUser() {
     const profileResult = await loadProfile(supabase, result.user);
     state.profile = profileResult.profile;
     state.isGuestMode = false;
-    state.terms = loadCurrentWorkspaceTerms();
     await refreshOrganizations();
+    state.terms = loadCurrentWorkspaceTerms();
     exitEditMode();
     showCloudMessage(`${result.message} ${profileResult.message}`, "success");
   } else {
@@ -542,6 +553,8 @@ organizationForm.addEventListener("submit", async (event) => {
     organizationNameInput.value = "";
     await refreshOrganizations();
     state.currentOrganizationId = result.organization.id;
+    state.terms = loadCurrentWorkspaceTerms();
+    exitEditMode();
     renderApp();
     showOrganizationMessage(result.message, "success");
   } finally {
@@ -551,6 +564,9 @@ organizationForm.addEventListener("submit", async (event) => {
 
 organizationSelect.addEventListener("change", () => {
   state.currentOrganizationId = organizationSelect.value || null;
+  state.terms = loadCurrentWorkspaceTerms();
+  exitEditMode();
+  showOrganizationMessage("已切换组织，本地显示当前组织的词库缓存；需要最新云端数据时请点击“从云端恢复”。", "success");
   renderApp();
 });
 
@@ -593,7 +609,9 @@ uploadCloudButton.addEventListener("click", async () => {
     return;
   }
 
-  const result = await uploadTermsToCloud(supabase, userResult.user.id, state.terms);
+  const result = state.currentOrganizationId
+    ? await uploadOrganizationTermsToCloud(supabase, state.currentOrganizationId, userResult.user.id, state.terms)
+    : await uploadTermsToCloud(supabase, userResult.user.id, state.terms);
   showCloudMessage(result.message, result.ok ? "success" : "error");
   } finally {
     setCloudButtonsDisabled(false);
@@ -610,7 +628,9 @@ downloadCloudButton.addEventListener("click", async () => {
     return;
   }
 
-  const result = await downloadTermsFromCloud(supabase, userResult.user.id);
+  const result = state.currentOrganizationId
+    ? await downloadOrganizationTermsFromCloud(supabase, state.currentOrganizationId)
+    : await downloadTermsFromCloud(supabase, userResult.user.id);
   if (!result.ok) {
     showCloudMessage(result.message);
     return;

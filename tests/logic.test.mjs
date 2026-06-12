@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { clearSession, createLocalUser, loadSession, saveSession } from "../scripts/auth.js";
-import { createCloudBackupPayload } from "../scripts/cloudSync.js";
+import { createCloudBackupPayload, createOrganizationTermsPayload } from "../scripts/cloudSync.js";
 import { createTerm, defaultTerms } from "../scripts/data.js";
 import { filterTerms } from "../scripts/filters.js";
 import { exportTermsBackup, getTermsStorageKey, importTermsBackup, loadTerms, loadTermsOrResetIfEmpty, saveTerms, resetTerms } from "../scripts/storage.js";
@@ -176,6 +176,16 @@ test("云端同步 payload 会带上用户 id、词条和更新时间", () => {
   const payload = createCloudBackupPayload("user-123", terms);
 
   assert.equal(payload.owner_id, "user-123");
+  assert.deepEqual(payload.terms, terms);
+  assert.match(payload.updated_at, /^\d{4}-\d{2}-\d{2}T/);
+});
+
+test("组织词库 payload 会带上组织 id、更新者和词条", () => {
+  const terms = defaultTerms.slice(0, 1);
+  const payload = createOrganizationTermsPayload("org-123", "user-123", terms);
+
+  assert.equal(payload.organization_id, "org-123");
+  assert.equal(payload.updated_by, "user-123");
   assert.deepEqual(payload.terms, terms);
   assert.match(payload.updated_at, /^\d{4}-\d{2}-\d{2}T/);
 });
