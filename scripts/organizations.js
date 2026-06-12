@@ -17,9 +17,7 @@ export async function createOrganization(supabase, name, userId) {
   }
 
   const { data, error } = await supabase
-    .from("organizations")
-    .insert({ name: normalizedName })
-    .select("id, name, created_at")
+    .rpc("create_organization", { org_name: normalizedName })
     .single();
 
   if (error) {

@@ -44,7 +44,7 @@ docs/v10a-organizations-schema.sql
 
 执行成功后，回到页面登录云端账号，输入组织名称，点击 `创建组织`。
 
-如果看到 `new row violates row-level security policy for table "organizations"`，通常说明旧 SQL 还没有让数据库自动写入创建者。重新执行最新版 `docs/v10a-organizations-schema.sql`，再刷新页面重试。
+如果看到 `new row violates row-level security policy for table "organizations"`，通常说明前端直接插入组织表时被 RLS 拦住。最新版已经改成调用数据库函数 `create_organization()`，重新执行最新版 `docs/v10a-organizations-schema.sql`，再刷新页面重试。
 
 ## 我做了什么
 
@@ -53,6 +53,7 @@ docs/v10a-organizations-schema.sql
 - 写了 Supabase SQL，让数据库知道什么是组织、什么是成员、什么是拥有者。
 - 用 RLS 限制：用户只能读取自己加入的组织。
 - 用数据库触发器自动写入 `created_by`，避免前端伪造或漏传创建者。
+- 用 `create_organization()` 数据库函数包住“创建组织 + 创建 owner 成员关系”，避免前端直接写多张表。
 - 写了测试，验证拥有者和成员的角色判断。
 
 ## 真实 SaaS 还差什么

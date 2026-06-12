@@ -98,6 +98,45 @@ create trigger on_organization_created
 after insert on public.organizations
 for each row execute function public.handle_new_organization();
 
+create or replace function public.create_organization(org_name text)
+returns table (
+  id uuid,
+  name text,
+  created_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  new_organization_id uuid;
+  normalized_name text;
+begin
+  if auth.uid() is null then
+    raise exception '用户必须登录后才能创建组织。';
+  end if;
+
+  normalized_name := trim(org_name);
+  if char_length(normalized_name) < 2 or char_length(normalized_name) > 40 then
+    raise exception '组织名称需要 2 到 40 个字符。';
+  end if;
+
+  -- 创建组织是一个业务动作：数据库负责写入创建者和 owner 成员关系。
+  insert into public.organizations (name, created_by)
+  values (normalized_name, auth.uid())
+  returning organizations.id into new_organization_id;
+
+  insert into public.organization_memberships (organization_id, user_id, role)
+  values (new_organization_id, auth.uid(), 'owner')
+  on conflict do nothing;
+
+  return query
+    select organizations.id, organizations.name, organizations.created_at
+    from public.organizations
+    where organizations.id = new_organization_id;
+end;
+$$;
+
 drop policy if exists "Members can read their organizations" on public.organizations;
 create policy "Members can read their organizations"
 on public.organizations
@@ -129,3 +168,4 @@ with check (public.is_org_owner(organization_id));
 
 grant select, insert on table public.organizations to authenticated;
 grant select, insert, update, delete on table public.organization_memberships to authenticated;
+grant execute on function public.create_organization(text) to authenticated;
