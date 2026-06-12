@@ -311,3 +311,16 @@ V11A 新增文件：
 |---|---|---|
 | `.github/workflows/pages.yml` | GitHub Pages 自动部署流程 | 每次 `main` 更新后，GitHub 自动把网页发布到 Pages |
 | `docs/v11a-actions-node24.md` | V11A 学习说明 | 解释 CI/CD、workflow、runner、deprecated 和维护任务 |
+
+## V11B GitHub Actions 自动测试
+
+V11B 新增自动测试 workflow，让 GitHub 在 PR 和 main 推送时自动运行 `npm test`。
+
+这一版重点学习 CI：不是只相信本地测试，而是让 GitHub 每次都自动检查。
+
+V11B 新增文件：
+
+| 文件 / 模块 | 中文用途 | 新手理解 |
+|---|---|---|
+| `.github/workflows/test.yml` | GitHub 自动测试流程 | 每次开 PR 或更新 main 时，GitHub 自动安装依赖并运行测试 |
+| `docs/v11b-test-workflow.md` | V11B 学习说明 | 解释 CI、pull request check、npm ci 和自动测试 |
