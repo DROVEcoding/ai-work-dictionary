@@ -12,6 +12,7 @@ import { createSupabaseClient, isSupabaseConfigured } from "./supabaseClient.js"
 import { exportTermsBackup, importTermsBackup, loadTerms, loadTermsOrResetIfEmpty, resetTerms, saveTerms } from "./storage.js";
 import { CURRENT_VERSION, compareVersions, fetchLatestVersion } from "./version.js";
 import { canManagePublicTerms, getRoleLabel, loadProfile, loadPublicTerms, publishPublicTerms } from "./permissions.js";
+import { createOrganization, getOrganizationRoleLabel, loadMyOrganizations } from "./organizations.js";
 import { renderTerms } from "./render.js";
 import { updateTermContent } from "./termActions.js";
 
@@ -52,6 +53,12 @@ const uploadCloudButton = document.querySelector("#uploadCloudButton");
 const downloadCloudButton = document.querySelector("#downloadCloudButton");
 const cloudSignOutButton = document.querySelector("#cloudSignOutButton");
 const cloudMessage = document.querySelector("#cloudMessage");
+const organizationForm = document.querySelector("#organizationForm");
+const organizationNameInput = document.querySelector("#organizationNameInput");
+const createOrganizationButton = document.querySelector("#createOrganizationButton");
+const organizationSelect = document.querySelector("#organizationSelect");
+const organizationRoleLabel = document.querySelector("#organizationRoleLabel");
+const organizationMessage = document.querySelector("#organizationMessage");
 const roleLabel = document.querySelector("#roleLabel");
 const loadPublicTermsButton = document.querySelector("#loadPublicTermsButton");
 const publishPublicTermsButton = document.querySelector("#publishPublicTermsButton");
@@ -65,6 +72,8 @@ const versionMessage = document.querySelector("#versionMessage");
 const state = {
   cloudUser: null,
   profile: null,
+  organizations: [],
+  currentOrganizationId: null,
   isGuestMode: false,
   terms: [],
   category: "all",
@@ -84,6 +93,7 @@ function setActiveButton(buttons, activeValue, dataName) {
 function renderApp() {
   renderIdentity();
   renderCloudAuth();
+  renderOrganizations();
   renderPermissions();
 
   const visibleTerms = filterTerms(state.terms, {
@@ -145,6 +155,71 @@ function showPermissionsMessage(message, type = "error") {
   permissionsMessage.textContent = message;
   permissionsMessage.dataset.type = type;
   permissionsMessage.hidden = !message;
+}
+
+function showOrganizationMessage(message, type = "error") {
+  organizationMessage.textContent = message;
+  organizationMessage.dataset.type = type;
+  organizationMessage.hidden = !message;
+}
+
+function getCurrentOrganization() {
+  return state.organizations.find((organization) => organization.id === state.currentOrganizationId) || null;
+}
+
+function renderOrganizations() {
+  const isLoggedIn = Boolean(state.cloudUser);
+  const currentOrganization = getCurrentOrganization();
+
+  organizationForm.querySelectorAll("input, button").forEach((element) => {
+    element.disabled = !isLoggedIn;
+  });
+  createOrganizationButton.disabled = !isLoggedIn;
+  organizationSelect.disabled = !isLoggedIn || state.organizations.length === 0;
+
+  organizationSelect.innerHTML = "";
+  if (!isLoggedIn) {
+    const option = new Option("请先登录云端账号", "");
+    organizationSelect.append(option);
+    organizationRoleLabel.textContent = "当前组织角色：未登录";
+    return;
+  }
+
+  if (state.organizations.length === 0) {
+    const option = new Option("还没有组织，请先创建", "");
+    organizationSelect.append(option);
+    organizationRoleLabel.textContent = "当前组织角色：未选择";
+    return;
+  }
+
+  state.organizations.forEach((organization) => {
+    const option = new Option(organization.name, organization.id);
+    organizationSelect.append(option);
+  });
+  organizationSelect.value = currentOrganization?.id || state.organizations[0].id;
+  organizationRoleLabel.textContent = `当前组织角色：${getOrganizationRoleLabel(currentOrganization?.role || state.organizations[0].role)}`;
+}
+
+async function refreshOrganizations() {
+  if (!state.cloudUser) {
+    state.organizations = [];
+    state.currentOrganizationId = null;
+    return;
+  }
+
+  const result = await loadMyOrganizations(supabase);
+  if (!result.ok) {
+    state.organizations = [];
+    state.currentOrganizationId = null;
+    showOrganizationMessage(result.message);
+    return;
+  }
+
+  state.organizations = result.organizations;
+  if (!state.organizations.some((organization) => organization.id === state.currentOrganizationId)) {
+    state.currentOrganizationId = state.organizations[0]?.id || null;
+  }
+  showOrganizationMessage(result.message, "success");
 }
 
 function renderVersionChanges(changes = []) {
@@ -215,10 +290,13 @@ async function refreshCloudUser() {
     state.profile = profileResult.profile;
     state.isGuestMode = false;
     state.terms = loadCurrentWorkspaceTerms();
+    await refreshOrganizations();
     exitEditMode();
     showCloudMessage(`${result.message} ${profileResult.message}`, "success");
   } else {
     state.profile = null;
+    state.organizations = [];
+    state.currentOrganizationId = null;
   }
   renderApp();
 }
@@ -418,8 +496,12 @@ importInput.addEventListener("change", async () => {
 guestModeButton.addEventListener("click", () => {
   state.isGuestMode = true;
   state.cloudUser = null;
+  state.profile = null;
+  state.organizations = [];
+  state.currentOrganizationId = null;
   state.terms = loadLocalFallbackTermsAfterCloudSignOut();
   showCloudMessage("");
+  showOrganizationMessage("");
   renderApp();
 });
 
@@ -430,10 +512,45 @@ exitIdentityButton.addEventListener("click", async () => {
 
   state.cloudUser = null;
   state.profile = null;
+  state.organizations = [];
+  state.currentOrganizationId = null;
   state.isGuestMode = false;
   state.terms = loadLocalFallbackTermsAfterCloudSignOut();
   exitEditMode();
   showCloudMessage("");
+  showOrganizationMessage("");
+  renderApp();
+});
+
+organizationForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  if (!state.cloudUser) {
+    showOrganizationMessage("请先登录云端账号。");
+    return;
+  }
+
+  createOrganizationButton.disabled = true;
+  showOrganizationMessage("正在创建组织...", "success");
+  try {
+    const result = await createOrganization(supabase, organizationNameInput.value, state.cloudUser.id);
+    if (!result.ok) {
+      showOrganizationMessage(result.message);
+      return;
+    }
+
+    organizationNameInput.value = "";
+    await refreshOrganizations();
+    state.currentOrganizationId = result.organization.id;
+    renderApp();
+    showOrganizationMessage(result.message, "success");
+  } finally {
+    createOrganizationButton.disabled = false;
+  }
+});
+
+organizationSelect.addEventListener("change", () => {
+  state.currentOrganizationId = organizationSelect.value || null;
   renderApp();
 });
 
@@ -516,9 +633,12 @@ cloudSignOutButton.addEventListener("click", async () => {
     const result = await signOutCloudUser(supabase);
     state.cloudUser = null;
     state.profile = null;
+    state.organizations = [];
+    state.currentOrganizationId = null;
     state.terms = loadLocalFallbackTermsAfterCloudSignOut();
     exitEditMode();
     showCloudMessage(result.message, result.ok ? "success" : "error");
+    showOrganizationMessage("");
     renderApp();
   } finally {
     setCloudButtonsDisabled(false);

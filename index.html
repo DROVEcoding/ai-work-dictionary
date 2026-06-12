@@ -53,6 +53,29 @@
       <button class="secondary-button" id="exitIdentityButton" type="button">退出到登录页</button>
     </section>
 
+    <section class="organization-panel" aria-label="组织和工作区">
+      <div>
+        <p class="eyebrow">Organization Workspace</p>
+        <h2>组织 / 工作区</h2>
+        <p class="organization-copy">V10A 学习 SaaS 里的多租户模型：一个账号可以属于多个组织，组织再决定成员和团队数据边界。</p>
+      </div>
+      <div class="organization-controls">
+        <form class="organization-form" id="organizationForm">
+          <label>
+            <span>新组织名称</span>
+            <input id="organizationNameInput" type="text" maxlength="40" placeholder="例如：DROVEcoding 团队">
+          </label>
+          <button class="primary-button" id="createOrganizationButton" type="submit">创建组织</button>
+        </form>
+        <label class="organization-select-label">
+          <span>当前组织</span>
+          <select id="organizationSelect"></select>
+        </label>
+        <span class="organization-role" id="organizationRoleLabel">当前组织角色：未选择</span>
+        <p class="form-message" id="organizationMessage" hidden></p>
+      </div>
+    </section>
+
     <section class="manager-panel" aria-label="新增词条">
       <div class="section-heading">
         <div>

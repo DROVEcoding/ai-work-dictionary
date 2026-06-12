@@ -9,6 +9,7 @@ import { exportTermsBackup, getTermsStorageKey, importTermsBackup, loadTerms, lo
 import { updateTermContent } from "../scripts/termActions.js";
 import { compareVersions } from "../scripts/version.js";
 import { canManagePublicTerms, createDefaultProfile, getRoleLabel } from "../scripts/permissions.js";
+import { canManageOrganization, getOrganizationRoleLabel } from "../scripts/organizations.js";
 
 function createFakeStorage() {
   const data = new Map();
@@ -193,4 +194,11 @@ test("权限角色可以区分管理员和普通用户", () => {
   assert.equal(getRoleLabel("admin"), "管理员");
   assert.equal(canManagePublicTerms(profile), false);
   assert.equal(canManagePublicTerms({ ...profile, role: "admin" }), true);
+});
+
+test("组织角色可以区分拥有者和成员", () => {
+  assert.equal(getOrganizationRoleLabel("owner"), "拥有者");
+  assert.equal(getOrganizationRoleLabel("member"), "成员");
+  assert.equal(canManageOrganization("owner"), true);
+  assert.equal(canManageOrganization("member"), false);
 });

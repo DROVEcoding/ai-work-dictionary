@@ -79,6 +79,7 @@ http://localhost:8000
 | `scripts/auth.js` | 本地模拟登录 | 保存当前用户 session，用来学习账号登录的基本概念 |
 | `scripts/cloudSync.js` | 云端同步逻辑 | 负责注册、登录、上传词条、下载词条 |
 | `scripts/permissions.js` | 权限逻辑 | 读取角色、判断管理员、读取/发布公共词库 |
+| `scripts/organizations.js` | 组织和工作区逻辑 | 负责创建组织、读取我的组织、判断组织里的角色 |
 | `scripts/supabaseClient.js` | Supabase 客户端 | 用项目 URL 和 publishable key 连接真实云服务 |
 | `scripts/supabaseConfig.js` | Supabase 配置 | 填写 Supabase 项目 URL 和公开 key；不要放 secret key |
 | `scripts/version.js` | 版本检查逻辑 | 比较当前版本和最新版本，读取 `version.json` |
@@ -224,3 +225,24 @@ V9B 新增文件：
 | `scripts/permissions.js` | 权限和公共词库逻辑 | 判断当前用户是不是管理员，并和 Supabase 公共词库表通信 |
 | `docs/v9b-permissions-schema.sql` | 权限数据库 SQL | 在 Supabase 中创建 `profiles`、`public_terms`、RLS 策略 |
 | `docs/v9b-permissions.md` | V9B 学习说明 | 解释 RBAC、RLS、管理员和普通用户 |
+
+## V10A 组织和工作区
+
+V10A 开始学习 SaaS 里的 `organization / workspace` 模型。账号代表“一个人”，组织代表“一个团队、公司或客户空间”。
+
+这一版新增：
+
+- 登录用户可以创建组织；
+- 创建者会自动成为组织拥有者；
+- 页面可以读取并选择“我的组织”；
+- 真正的成员关系和读取权限写在 Supabase RLS 里。
+
+V10A 新增文件：
+
+| 文件 / 模块 | 中文用途 | 新手理解 |
+|---|---|---|
+| `scripts/organizations.js` | 组织和工作区逻辑 | 把“创建组织、读取我的组织、角色名称”这些组织相关代码集中放在一起 |
+| `docs/v10a-organizations-schema.sql` | 组织数据库 SQL | 在 Supabase 中创建 `organizations`、`organization_memberships`、RLS 策略和自动加入组织的触发器 |
+| `docs/v10a-organizations.md` | V10A 学习说明 | 解释 SaaS 为什么需要组织、成员关系和多租户隔离 |
+
+注意：V10A 先建立组织模型，还没有把词条数据真正迁移成“每个组织一套词库”。这会放到后续版本学习。

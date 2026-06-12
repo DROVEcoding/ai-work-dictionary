@@ -1,4 +1,4 @@
-const CACHE_NAME = "ai-work-dictionary-v9b";
+const CACHE_NAME = "ai-work-dictionary-v10a";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -10,6 +10,7 @@ const APP_SHELL = [
   "./scripts/cloudSync.js",
   "./scripts/data.js",
   "./scripts/filters.js",
+  "./scripts/organizations.js",
   "./scripts/permissions.js",
   "./scripts/render.js",
   "./scripts/storage.js",

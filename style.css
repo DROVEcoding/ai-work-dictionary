@@ -194,6 +194,66 @@ h1 {
   margin-bottom: 20px;
 }
 
+.organization-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 460px);
+  gap: 18px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.organization-panel h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.organization-copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.organization-controls {
+  display: grid;
+  gap: 12px;
+}
+
+.organization-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.organization-form label,
+.organization-select-label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-weight: 700;
+}
+
+.organization-form input,
+.organization-select-label select {
+  width: 100%;
+  border: 1px solid #c6d1df;
+  border-radius: 8px;
+  padding: 11px 12px;
+  font: inherit;
+  color: var(--text);
+  background: #fbfcff;
+}
+
+.organization-role {
+  color: var(--text);
+  font-weight: 700;
+}
+
 .cloud-panel h2 {
   margin: 0 0 8px;
   font-size: 24px;
@@ -612,6 +672,7 @@ h1 {
   .entry-view,
   .backup-panel,
   .cloud-panel,
+  .organization-panel,
   .permissions-panel,
   .version-panel,
   .dictionary-grid,
@@ -624,6 +685,10 @@ h1 {
   }
 
   .cloud-form {
+    grid-template-columns: 1fr;
+  }
+
+  .organization-form {
     grid-template-columns: 1fr;
   }
 
