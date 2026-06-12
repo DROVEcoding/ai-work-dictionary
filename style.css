@@ -302,9 +302,44 @@ h1 {
   padding: 9px 10px;
 }
 
+.member-identity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
 .member-role {
   color: var(--accent);
   font-weight: 700;
+}
+
+.member-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.member-action-button,
+.member-danger-button {
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.member-action-button {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.member-danger-button {
+  border: 1px solid #fecaca;
+  background: #fffafa;
+  color: #b91c1c;
 }
 
 .cloud-panel h2 {
@@ -753,6 +788,10 @@ h1 {
   .member-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .member-actions {
+    justify-content: flex-start;
   }
 
   .cloud-actions {

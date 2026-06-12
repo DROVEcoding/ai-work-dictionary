@@ -6,6 +6,10 @@ export function canManageOrganization(role) {
   return role === "owner";
 }
 
+export function canManageMember(currentRole, member, currentUserId) {
+  return currentRole === "owner" && member.userId !== currentUserId && member.role === "member";
+}
+
 export function normalizeMemberEmail(email) {
   return email.trim().toLowerCase();
 }
@@ -77,6 +81,43 @@ export async function loadOrganizationMembers(supabase, organizationId) {
     })),
     message: "已读取当前组织成员。"
   };
+}
+
+export async function promoteOrganizationMember(supabase, organizationId, memberUserId) {
+  if (!organizationId || !memberUserId) {
+    return { ok: false, member: null, message: "请先选择要升级的成员。" };
+  }
+
+  const { data, error } = await supabase
+    .rpc("promote_organization_member", {
+      org_id: organizationId,
+      member_user_id: memberUserId
+    })
+    .single();
+
+  if (error) {
+    return { ok: false, member: null, message: error.message };
+  }
+
+  return { ok: true, member: data, message: "成员已升级为拥有者。" };
+}
+
+export async function removeOrganizationMember(supabase, organizationId, memberUserId) {
+  if (!organizationId || !memberUserId) {
+    return { ok: false, message: "请先选择要移除的成员。" };
+  }
+
+  const { error } = await supabase
+    .rpc("remove_organization_member", {
+      org_id: organizationId,
+      member_user_id: memberUserId
+    });
+
+  if (error) {
+    return { ok: false, message: error.message };
+  }
+
+  return { ok: true, message: "成员已移出当前组织。" };
 }
 
 export async function loadMyOrganizations(supabase) {

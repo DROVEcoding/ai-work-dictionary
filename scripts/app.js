@@ -16,11 +16,14 @@ import { CURRENT_VERSION, compareVersions, fetchLatestVersion } from "./version.
 import { canManagePublicTerms, getRoleLabel, loadProfile, loadPublicTerms, publishPublicTerms } from "./permissions.js";
 import {
   addOrganizationMember,
+  canManageMember,
   canManageOrganization,
   createOrganization,
   getOrganizationRoleLabel,
   loadMyOrganizations,
-  loadOrganizationMembers
+  loadOrganizationMembers,
+  promoteOrganizationMember,
+  removeOrganizationMember
 } from "./organizations.js";
 import { renderTerms } from "./render.js";
 import { updateTermContent } from "./termActions.js";
@@ -233,6 +236,8 @@ function renderOrganizations() {
 
 function renderOrganizationMembers() {
   memberList.innerHTML = "";
+  const currentOrganization = getCurrentOrganization();
+
   if (!state.currentOrganizationId) {
     memberList.textContent = "选择组织后显示成员。";
     return;
@@ -254,7 +259,34 @@ function renderOrganizationMembers() {
     role.className = "member-role";
     role.textContent = getOrganizationRoleLabel(member.role);
 
-    row.append(email, role);
+    const identity = document.createElement("div");
+    identity.className = "member-identity";
+    identity.append(email, role);
+
+    const actions = document.createElement("div");
+    actions.className = "member-actions";
+
+    if (canManageMember(currentOrganization?.role, member, state.cloudUser?.id)) {
+      const promoteButton = document.createElement("button");
+      promoteButton.className = "member-action-button";
+      promoteButton.type = "button";
+      promoteButton.textContent = "升级为拥有者";
+      promoteButton.dataset.memberAction = "promote";
+      promoteButton.dataset.memberId = member.userId;
+      promoteButton.dataset.memberEmail = member.email;
+
+      const removeButton = document.createElement("button");
+      removeButton.className = "member-danger-button";
+      removeButton.type = "button";
+      removeButton.textContent = "移除";
+      removeButton.dataset.memberAction = "remove";
+      removeButton.dataset.memberId = member.userId;
+      removeButton.dataset.memberEmail = member.email;
+
+      actions.append(promoteButton, removeButton);
+    }
+
+    row.append(identity, actions);
     memberList.append(row);
   });
 }
@@ -662,6 +694,54 @@ memberForm.addEventListener("submit", async (event) => {
     showOrganizationMessage(result.message, "success");
   } finally {
     renderApp();
+  }
+});
+
+memberList.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-member-action]");
+  if (!button) {
+    return;
+  }
+
+  const memberId = button.dataset.memberId;
+  const memberEmail = button.dataset.memberEmail;
+  const action = button.dataset.memberAction;
+
+  if (action === "promote") {
+    const confirmed = window.confirm(`确定把 ${memberEmail} 升级为组织拥有者吗？`);
+    if (!confirmed) {
+      return;
+    }
+
+    showOrganizationMessage("正在升级成员角色...", "success");
+    const result = await promoteOrganizationMember(supabase, state.currentOrganizationId, memberId);
+    if (!result.ok) {
+      showOrganizationMessage(result.message);
+      return;
+    }
+
+    await refreshOrganizations();
+    renderApp();
+    showOrganizationMessage(result.message, "success");
+    return;
+  }
+
+  if (action === "remove") {
+    const confirmed = window.confirm(`确定把 ${memberEmail} 移出当前组织吗？`);
+    if (!confirmed) {
+      return;
+    }
+
+    showOrganizationMessage("正在移除成员...", "success");
+    const result = await removeOrganizationMember(supabase, state.currentOrganizationId, memberId);
+    if (!result.ok) {
+      showOrganizationMessage(result.message);
+      return;
+    }
+
+    await refreshOrganizationMembers();
+    renderApp();
+    showOrganizationMessage(result.message, "success");
   }
 });
 
