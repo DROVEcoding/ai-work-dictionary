@@ -8,6 +8,7 @@ import { filterTerms } from "../scripts/filters.js";
 import { exportTermsBackup, getTermsStorageKey, importTermsBackup, loadTerms, loadTermsOrResetIfEmpty, saveTerms, resetTerms } from "../scripts/storage.js";
 import { updateTermContent } from "../scripts/termActions.js";
 import { compareVersions } from "../scripts/version.js";
+import { canManagePublicTerms, createDefaultProfile, getRoleLabel } from "../scripts/permissions.js";
 
 function createFakeStorage() {
   const data = new Map();
@@ -182,4 +183,14 @@ test("版本比较可以判断当前、过期和开发版", () => {
   assert.equal(compareVersions("1.3.0", "1.3.0"), "current");
   assert.equal(compareVersions("1.2.0", "1.3.0"), "outdated");
   assert.equal(compareVersions("1.4.0", "1.3.0"), "ahead");
+});
+
+test("权限角色可以区分管理员和普通用户", () => {
+  const user = { id: "user-1", email: "user@example.com" };
+  const profile = createDefaultProfile(user);
+
+  assert.equal(profile.role, "user");
+  assert.equal(getRoleLabel("admin"), "管理员");
+  assert.equal(canManagePublicTerms(profile), false);
+  assert.equal(canManagePublicTerms({ ...profile, role: "admin" }), true);
 });
