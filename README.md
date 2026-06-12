@@ -324,3 +324,16 @@ V11B 新增文件：
 |---|---|---|
 | `.github/workflows/test.yml` | GitHub 自动测试流程 | 每次开 PR 或更新 main 时，GitHub 自动安装依赖并运行测试 |
 | `docs/v11b-test-workflow.md` | V11B 学习说明 | 解释 CI、pull request check、npm ci 和自动测试 |
+
+## V11C 分支保护和必过检查
+
+V11C 给 `main` 分支启用分支保护，并把 `test` 设置为必过检查。
+
+这一版重点学习质量门禁：测试不通过时，PR 不应该被合并进主线。
+
+V11C 新增文件：
+
+| 文件 / 模块 | 中文用途 | 新手理解 |
+|---|---|---|
+| GitHub branch protection | main 分支保护设置 | 仓库里的规则，不在代码文件里；要求 PR 合并前通过测试 |
+| `docs/v11c-branch-protection.md` | V11C 学习说明 | 解释 branch protection、required check 和 strict mode |
