@@ -72,6 +72,16 @@
           <select id="organizationSelect"></select>
         </label>
         <span class="organization-role" id="organizationRoleLabel">当前组织角色：未选择</span>
+        <div class="member-tools">
+          <form class="member-form" id="memberForm">
+            <label>
+              <span>添加成员邮箱</span>
+              <input id="memberEmailInput" type="email" placeholder="member@example.com">
+            </label>
+            <button class="secondary-button" id="addMemberButton" type="submit">添加成员</button>
+          </form>
+          <div class="member-list" id="memberList" aria-label="当前组织成员"></div>
+        </div>
         <p class="form-message" id="organizationMessage" hidden></p>
       </div>
     </section>

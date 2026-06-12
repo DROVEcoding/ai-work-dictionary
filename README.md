@@ -259,3 +259,16 @@ V10B 新增文件：
 |---|---|---|
 | `docs/v10b-organization-terms-schema.sql` | 组织词库数据库 SQL | 创建 `organization_term_backups`，让每个组织有自己的云端词库备份 |
 | `docs/v10b-organization-terms.md` | V10B 学习说明 | 解释 `organization_id`、多租户隔离和 RLS 为什么重要 |
+
+## V10C 组织成员邀请
+
+V10C 让组织 owner 可以按邮箱添加已注册用户为成员，并在页面里查看当前组织成员列表。
+
+这一版先不做邮件邀请链接，而是学习最核心的成员权限模型：谁有权把谁加入哪个组织。
+
+V10C 新增文件：
+
+| 文件 / 模块 | 中文用途 | 新手理解 |
+|---|---|---|
+| `docs/v10c-member-invites-schema.sql` | 组织成员数据库 SQL | 创建添加成员和读取成员列表的数据库函数，真正检查 owner 权限 |
+| `docs/v10c-member-invites.md` | V10C 学习说明 | 解释成员关系、owner 权限和为什么先不做邮件邀请链接 |

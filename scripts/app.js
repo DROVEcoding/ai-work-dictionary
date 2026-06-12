@@ -14,7 +14,14 @@ import { createSupabaseClient, isSupabaseConfigured } from "./supabaseClient.js"
 import { exportTermsBackup, importTermsBackup, loadTerms, loadTermsOrResetIfEmpty, resetTerms, saveTerms } from "./storage.js";
 import { CURRENT_VERSION, compareVersions, fetchLatestVersion } from "./version.js";
 import { canManagePublicTerms, getRoleLabel, loadProfile, loadPublicTerms, publishPublicTerms } from "./permissions.js";
-import { createOrganization, getOrganizationRoleLabel, loadMyOrganizations } from "./organizations.js";
+import {
+  addOrganizationMember,
+  canManageOrganization,
+  createOrganization,
+  getOrganizationRoleLabel,
+  loadMyOrganizations,
+  loadOrganizationMembers
+} from "./organizations.js";
 import { renderTerms } from "./render.js";
 import { updateTermContent } from "./termActions.js";
 
@@ -61,6 +68,10 @@ const createOrganizationButton = document.querySelector("#createOrganizationButt
 const organizationSelect = document.querySelector("#organizationSelect");
 const organizationRoleLabel = document.querySelector("#organizationRoleLabel");
 const organizationMessage = document.querySelector("#organizationMessage");
+const memberForm = document.querySelector("#memberForm");
+const memberEmailInput = document.querySelector("#memberEmailInput");
+const addMemberButton = document.querySelector("#addMemberButton");
+const memberList = document.querySelector("#memberList");
 const roleLabel = document.querySelector("#roleLabel");
 const loadPublicTermsButton = document.querySelector("#loadPublicTermsButton");
 const publishPublicTermsButton = document.querySelector("#publishPublicTermsButton");
@@ -75,6 +86,7 @@ const state = {
   cloudUser: null,
   profile: null,
   organizations: [],
+  organizationMembers: [],
   currentOrganizationId: null,
   isGuestMode: false,
   terms: [],
@@ -187,12 +199,15 @@ function renderOrganizations() {
   });
   createOrganizationButton.disabled = !isLoggedIn;
   organizationSelect.disabled = !isLoggedIn || state.organizations.length === 0;
+  addMemberButton.disabled = true;
+  memberEmailInput.disabled = true;
 
   organizationSelect.innerHTML = "";
   if (!isLoggedIn) {
     const option = new Option("请先登录云端账号", "");
     organizationSelect.append(option);
     organizationRoleLabel.textContent = "当前组织角色：未登录";
+    renderOrganizationMembers();
     return;
   }
 
@@ -200,6 +215,7 @@ function renderOrganizations() {
     const option = new Option("还没有组织，请先创建", "");
     organizationSelect.append(option);
     organizationRoleLabel.textContent = "当前组织角色：未选择";
+    renderOrganizationMembers();
     return;
   }
 
@@ -208,12 +224,45 @@ function renderOrganizations() {
     organizationSelect.append(option);
   });
   organizationSelect.value = currentOrganization?.id || state.organizations[0].id;
-  organizationRoleLabel.textContent = `当前组织角色：${getOrganizationRoleLabel(currentOrganization?.role || state.organizations[0].role)}`;
+  const activeRole = currentOrganization?.role || state.organizations[0].role;
+  organizationRoleLabel.textContent = `当前组织角色：${getOrganizationRoleLabel(activeRole)}`;
+  addMemberButton.disabled = !canManageOrganization(activeRole);
+  memberEmailInput.disabled = !canManageOrganization(activeRole);
+  renderOrganizationMembers();
+}
+
+function renderOrganizationMembers() {
+  memberList.innerHTML = "";
+  if (!state.currentOrganizationId) {
+    memberList.textContent = "选择组织后显示成员。";
+    return;
+  }
+
+  if (state.organizationMembers.length === 0) {
+    memberList.textContent = "当前组织成员列表为空或尚未读取。";
+    return;
+  }
+
+  state.organizationMembers.forEach((member) => {
+    const row = document.createElement("div");
+    row.className = "member-row";
+
+    const email = document.createElement("span");
+    email.textContent = member.email;
+
+    const role = document.createElement("span");
+    role.className = "member-role";
+    role.textContent = getOrganizationRoleLabel(member.role);
+
+    row.append(email, role);
+    memberList.append(row);
+  });
 }
 
 async function refreshOrganizations() {
   if (!state.cloudUser) {
     state.organizations = [];
+    state.organizationMembers = [];
     state.currentOrganizationId = null;
     return;
   }
@@ -221,6 +270,7 @@ async function refreshOrganizations() {
   const result = await loadMyOrganizations(supabase);
   if (!result.ok) {
     state.organizations = [];
+    state.organizationMembers = [];
     state.currentOrganizationId = null;
     showOrganizationMessage(result.message);
     return;
@@ -230,7 +280,21 @@ async function refreshOrganizations() {
   if (!state.organizations.some((organization) => organization.id === state.currentOrganizationId)) {
     state.currentOrganizationId = state.organizations[0]?.id || null;
   }
+  await refreshOrganizationMembers();
   showOrganizationMessage(result.message, "success");
+}
+
+async function refreshOrganizationMembers() {
+  if (!state.cloudUser || !state.currentOrganizationId) {
+    state.organizationMembers = [];
+    return;
+  }
+
+  const result = await loadOrganizationMembers(supabase, state.currentOrganizationId);
+  state.organizationMembers = result.ok ? result.members : [];
+  if (!result.ok) {
+    showOrganizationMessage(result.message);
+  }
 }
 
 function renderVersionChanges(changes = []) {
@@ -307,6 +371,7 @@ async function refreshCloudUser() {
   } else {
     state.profile = null;
     state.organizations = [];
+    state.organizationMembers = [];
     state.currentOrganizationId = null;
   }
   renderApp();
@@ -509,6 +574,7 @@ guestModeButton.addEventListener("click", () => {
   state.cloudUser = null;
   state.profile = null;
   state.organizations = [];
+  state.organizationMembers = [];
   state.currentOrganizationId = null;
   state.terms = loadLocalFallbackTermsAfterCloudSignOut();
   showCloudMessage("");
@@ -524,6 +590,7 @@ exitIdentityButton.addEventListener("click", async () => {
   state.cloudUser = null;
   state.profile = null;
   state.organizations = [];
+  state.organizationMembers = [];
   state.currentOrganizationId = null;
   state.isGuestMode = false;
   state.terms = loadLocalFallbackTermsAfterCloudSignOut();
@@ -553,6 +620,7 @@ organizationForm.addEventListener("submit", async (event) => {
     organizationNameInput.value = "";
     await refreshOrganizations();
     state.currentOrganizationId = result.organization.id;
+    await refreshOrganizationMembers();
     state.terms = loadCurrentWorkspaceTerms();
     exitEditMode();
     renderApp();
@@ -562,12 +630,39 @@ organizationForm.addEventListener("submit", async (event) => {
   }
 });
 
-organizationSelect.addEventListener("change", () => {
+organizationSelect.addEventListener("change", async () => {
   state.currentOrganizationId = organizationSelect.value || null;
+  await refreshOrganizationMembers();
   state.terms = loadCurrentWorkspaceTerms();
   exitEditMode();
   showOrganizationMessage("已切换组织，本地显示当前组织的词库缓存；需要最新云端数据时请点击“从云端恢复”。", "success");
   renderApp();
+});
+
+memberForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  if (!state.currentOrganizationId) {
+    showOrganizationMessage("请先选择一个组织。");
+    return;
+  }
+
+  addMemberButton.disabled = true;
+  showOrganizationMessage("正在添加成员...", "success");
+  try {
+    const result = await addOrganizationMember(supabase, state.currentOrganizationId, memberEmailInput.value);
+    if (!result.ok) {
+      showOrganizationMessage(result.message);
+      return;
+    }
+
+    memberEmailInput.value = "";
+    await refreshOrganizationMembers();
+    renderApp();
+    showOrganizationMessage(result.message, "success");
+  } finally {
+    renderApp();
+  }
 });
 
 cloudAuthForm.addEventListener("submit", async (event) => {
@@ -654,6 +749,7 @@ cloudSignOutButton.addEventListener("click", async () => {
     state.cloudUser = null;
     state.profile = null;
     state.organizations = [];
+    state.organizationMembers = [];
     state.currentOrganizationId = null;
     state.terms = loadLocalFallbackTermsAfterCloudSignOut();
     exitEditMode();

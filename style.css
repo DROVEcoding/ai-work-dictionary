@@ -254,6 +254,59 @@ h1 {
   font-weight: 700;
 }
 
+.member-tools {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.member-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.member-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-weight: 700;
+}
+
+.member-form input {
+  width: 100%;
+  border: 1px solid #c6d1df;
+  border-radius: 8px;
+  padding: 11px 12px;
+  font: inherit;
+  color: var(--text);
+  background: #fbfcff;
+}
+
+.member-list {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.member-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #dbe5f0;
+  border-radius: 6px;
+  background: #fbfcff;
+  padding: 9px 10px;
+}
+
+.member-role {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .cloud-panel h2 {
   margin: 0 0 8px;
   font-size: 24px;
@@ -690,6 +743,16 @@ h1 {
 
   .organization-form {
     grid-template-columns: 1fr;
+  }
+
+  .member-form,
+  .member-row {
+    grid-template-columns: 1fr;
+  }
+
+  .member-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .cloud-actions {

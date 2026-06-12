@@ -6,6 +6,10 @@ export function canManageOrganization(role) {
   return role === "owner";
 }
 
+export function normalizeMemberEmail(email) {
+  return email.trim().toLowerCase();
+}
+
 export async function createOrganization(supabase, name, userId) {
   const normalizedName = name.trim();
   if (normalizedName.length < 2 || normalizedName.length > 40) {
@@ -25,6 +29,54 @@ export async function createOrganization(supabase, name, userId) {
   }
 
   return { ok: true, organization: data, message: "组织已创建。" };
+}
+
+export async function addOrganizationMember(supabase, organizationId, email) {
+  const normalizedEmail = normalizeMemberEmail(email);
+  if (!organizationId) {
+    return { ok: false, member: null, message: "请先选择一个组织。" };
+  }
+
+  if (!normalizedEmail) {
+    return { ok: false, member: null, message: "请输入成员邮箱。" };
+  }
+
+  const { data, error } = await supabase
+    .rpc("add_organization_member", {
+      org_id: organizationId,
+      member_email: normalizedEmail
+    })
+    .single();
+
+  if (error) {
+    return { ok: false, member: null, message: error.message };
+  }
+
+  return { ok: true, member: data, message: "成员已加入当前组织。" };
+}
+
+export async function loadOrganizationMembers(supabase, organizationId) {
+  if (!organizationId) {
+    return { ok: true, members: [], message: "还没有选择组织。" };
+  }
+
+  const { data, error } = await supabase
+    .rpc("list_organization_members", { org_id: organizationId });
+
+  if (error) {
+    return { ok: false, members: [], message: error.message };
+  }
+
+  return {
+    ok: true,
+    members: (data || []).map((member) => ({
+      userId: member.user_id,
+      email: member.email,
+      role: member.role,
+      createdAt: member.created_at
+    })),
+    message: "已读取当前组织成员。"
+  };
 }
 
 export async function loadMyOrganizations(supabase) {
