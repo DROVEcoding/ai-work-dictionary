@@ -27,6 +27,28 @@ create table if not exists public.organization_memberships (
 alter table public.organizations enable row level security;
 alter table public.organization_memberships enable row level security;
 
+create or replace function public.set_new_organization_creator()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception '用户必须登录后才能创建组织。';
+  end if;
+
+  -- 创建者身份由数据库从登录态写入，避免前端伪造或漏传 created_by。
+  new.created_by := auth.uid();
+  return new;
+end;
+$$;
+
+drop trigger if exists before_organization_created on public.organizations;
+create trigger before_organization_created
+before insert on public.organizations
+for each row execute function public.set_new_organization_creator();
+
 create or replace function public.is_org_member(org_id uuid, user_id uuid default auth.uid())
 returns boolean
 language sql
@@ -88,7 +110,7 @@ create policy "Authenticated users can create organizations"
 on public.organizations
 for insert
 to authenticated
-with check (auth.uid() = created_by);
+with check (auth.uid() is not null and auth.uid() = created_by);
 
 drop policy if exists "Members can read memberships in their organizations" on public.organization_memberships;
 create policy "Members can read memberships in their organizations"

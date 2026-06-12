@@ -18,7 +18,7 @@ export async function createOrganization(supabase, name, userId) {
 
   const { data, error } = await supabase
     .from("organizations")
-    .insert({ name: normalizedName, created_by: userId })
+    .insert({ name: normalizedName })
     .select("id, name, created_at")
     .single();
 
