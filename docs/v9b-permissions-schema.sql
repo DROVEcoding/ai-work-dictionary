@@ -1,4 +1,10 @@
-create type public.app_role as enum ('user', 'admin');
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'app_role') then
+    create type public.app_role as enum ('user', 'admin');
+  end if;
+end;
+$$;
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -28,6 +34,11 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
+
+insert into public.profiles (id, email, role)
+select id, email, 'user'
+from auth.users
+on conflict (id) do nothing;
 
 create or replace function public.is_admin(user_id uuid default auth.uid())
 returns boolean
@@ -91,3 +102,5 @@ grant select, insert, update, delete on table public.public_terms to authenticat
 
 -- 把某个账号设为管理员时，把下面邮箱换成你的云端登录邮箱后单独执行：
 -- update public.profiles set role = 'admin' where email = 'your-email@example.com';
+-- 你之前测试用的邮箱可以这样授权：
+-- update public.profiles set role = 'admin' where email = '861580101@qq.com';
