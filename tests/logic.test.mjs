@@ -11,7 +11,7 @@ import { compareVersions } from "../scripts/version.js";
 import { canManagePublicTerms, createDefaultProfile, getRoleLabel } from "../scripts/permissions.js";
 import { createFeedbackPayload, validateFeedbackMessage } from "../scripts/feedback.js";
 import { canManageMember, canManageOrganization, getAuditEventLabel, getOrganizationRoleLabel, mapMyOrganizationRows, normalizeMemberEmail } from "../scripts/organizations.js";
-import { formatAdminFeedbackReports, formatAdminOrganizations, formatAdminOverview, formatAdminUsers, shouldLoadAdminData } from "../scripts/adminData.js";
+import { filterAdminFeedbackReports, filterAdminOrganizations, filterAdminUsers, formatAdminFeedbackReports, formatAdminOrganizationDetail, formatAdminOrganizations, formatAdminOverview, formatAdminUsers, shouldLoadAdminData } from "../scripts/adminData.js";
 
 function createFakeStorage() {
   const data = new Map();
@@ -349,4 +349,62 @@ test("只有平台管理员状态会读取后台数据", () => {
   assert.equal(shouldLoadAdminData(null), false);
   assert.equal(shouldLoadAdminData({ role: "user" }), false);
   assert.equal(shouldLoadAdminData({ role: "admin" }), true);
+});
+
+test("后台用户搜索会按邮箱和角色过滤", () => {
+  const users = [
+    { email: "admin@example.com", role: "admin", organizationCount: 2 },
+    { email: "member@example.com", role: "user", organizationCount: 1 }
+  ];
+
+  assert.deepEqual(filterAdminUsers(users, "admin").map((user) => user.email), ["admin@example.com"]);
+  assert.deepEqual(filterAdminUsers(users, "member").map((user) => user.email), ["member@example.com"]);
+});
+
+test("后台组织搜索会按组织名和 owner 邮箱过滤", () => {
+  const organizations = [
+    { name: "客户成功组", owners: ["owner@example.com"], memberCount: 4 },
+    { name: "产品组", owners: ["pm@example.com"], memberCount: 2 }
+  ];
+
+  assert.deepEqual(filterAdminOrganizations(organizations, "客户").map((organization) => organization.name), ["客户成功组"]);
+  assert.deepEqual(filterAdminOrganizations(organizations, "pm@example.com").map((organization) => organization.name), ["产品组"]);
+});
+
+test("后台反馈搜索和状态筛选可以一起工作", () => {
+  const reports = [
+    { message: "按钮没有反应", status: "open", reporterEmail: "user@example.com", organizationName: "客户成功组" },
+    { message: "已经修复", status: "resolved", reporterEmail: "admin@example.com", organizationName: "产品组" }
+  ];
+
+  const byText = filterAdminFeedbackReports(reports, { query: "按钮", status: "all" });
+  const byStatus = filterAdminFeedbackReports(reports, { query: "", status: "resolved" });
+
+  assert.deepEqual(byText.map((report) => report.message), ["按钮没有反应"]);
+  assert.deepEqual(byStatus.map((report) => report.status), ["resolved"]);
+});
+
+test("后台组织详情会整理成员、反馈和词库备份摘要", () => {
+  const detail = formatAdminOrganizationDetail({
+    id: "org-1",
+    name: "客户成功组",
+    created_at: "2026-06-13T00:00:00.000Z",
+    members: [
+      { user_id: "owner-1", email: "owner@example.com", role: "owner", created_at: "2026-06-13T00:00:00.000Z" },
+      { user_id: "member-1", email: "member@example.com", role: "member", created_at: "2026-06-13T01:00:00.000Z" }
+    ],
+    feedback_reports: [
+      { id: "feedback-1", message: "组织词库打不开", status: "open", reporter_email: "member@example.com", created_at: "2026-06-13T02:00:00.000Z" }
+    ],
+    term_backup: {
+      updated_at: "2026-06-13T03:00:00.000Z",
+      term_count: 12
+    }
+  });
+
+  assert.equal(detail.name, "客户成功组");
+  assert.deepEqual(detail.owners.map((member) => member.email), ["owner@example.com"]);
+  assert.deepEqual(detail.members.map((member) => member.email), ["owner@example.com", "member@example.com"]);
+  assert.equal(detail.feedbackReports[0].message, "组织词库打不开");
+  assert.equal(detail.termBackup.termCount, 12);
 });

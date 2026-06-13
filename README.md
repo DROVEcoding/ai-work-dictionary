@@ -371,3 +371,16 @@ V12B 新增文件：
 | `scripts/adminData.js` | 后台数据逻辑 | 调用 Supabase 后台 RPC，并整理成前端好用的数据 |
 | `docs/v12b-super-admin-console-schema.sql` | 后台数据库 SQL | 创建只允许超级管理员调用的全局读取函数 |
 | `docs/v12b-super-admin-console.md` | V12B 学习说明 | 解释超级管理员、组织拥有者、只读后台和真实 SaaS 后台边界 |
+
+## V12C 超级管理员组织目录
+
+V12C 把后台升级成表格形式，并加入搜索、反馈状态筛选、数据库索引和组织详情。
+
+这一版重点学习后台目录：真实 SaaS 后台需要快速查找用户、组织、反馈，并能点进组织看成员、拥有者、反馈和词库备份摘要。
+
+V12C 新增文件：
+
+| 文件 / 模块 | 中文用途 | 新手理解 |
+|---|---|---|
+| `docs/v12c-admin-organization-directory-schema.sql` | 后台组织目录数据库 SQL | 给常用查询字段加索引，并创建只读组织详情函数 |
+| `docs/v12c-admin-organization-directory.md` | V12C 学习说明 | 解释后台表格、前端搜索、数据库索引和组织详情 |

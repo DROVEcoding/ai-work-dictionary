@@ -18,6 +18,7 @@
       </div>
       <div class="admin-hero-actions">
         <span id="adminIdentityLabel">正在检查身份...</span>
+        <button class="secondary-button" id="adminRefreshButton" type="button" hidden>刷新后台数据</button>
         <a class="secondary-button" href="./index.html">返回词典</a>
       </div>
     </section>
@@ -27,6 +28,22 @@
     <section class="admin-console" id="adminContent" hidden>
       <section class="admin-overview-grid" id="adminOverview" aria-label="平台总览"></section>
 
+      <section class="admin-filter-panel" aria-label="后台搜索和筛选">
+        <label>
+          <span>搜索</span>
+          <input id="adminSearchInput" type="search" placeholder="搜索用户邮箱、组织名、反馈内容">
+        </label>
+        <label>
+          <span>反馈状态</span>
+          <select id="adminFeedbackStatusFilter">
+            <option value="all">全部</option>
+            <option value="open">open</option>
+            <option value="triaged">triaged</option>
+            <option value="resolved">resolved</option>
+          </select>
+        </label>
+      </section>
+
       <section class="admin-panel">
         <div class="section-heading">
           <div>
@@ -34,7 +51,19 @@
             <h2>用户</h2>
           </div>
         </div>
-        <div class="admin-list" id="adminUsers" aria-label="用户列表"></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" aria-label="用户列表">
+            <thead>
+              <tr>
+                <th>邮箱</th>
+                <th>平台角色</th>
+                <th>加入组织数</th>
+                <th>创建时间</th>
+              </tr>
+            </thead>
+            <tbody id="adminUsers"></tbody>
+          </table>
+        </div>
       </section>
 
       <section class="admin-panel">
@@ -44,7 +73,30 @@
             <h2>组织</h2>
           </div>
         </div>
-        <div class="admin-list" id="adminOrganizations" aria-label="组织列表"></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" aria-label="组织列表">
+            <thead>
+              <tr>
+                <th>组织</th>
+                <th>拥有者</th>
+                <th>成员数</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="adminOrganizations"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-panel" id="adminOrganizationDetailPanel" hidden>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Organization Detail</p>
+            <h2 id="adminOrganizationDetailTitle">组织详情</h2>
+          </div>
+        </div>
+        <div class="admin-detail-grid" id="adminOrganizationDetail"></div>
       </section>
 
       <section class="admin-panel">
@@ -54,7 +106,20 @@
             <h2>反馈</h2>
           </div>
         </div>
-        <div class="admin-list" id="adminFeedback" aria-label="反馈列表"></div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" aria-label="反馈列表">
+            <thead>
+              <tr>
+                <th>反馈</th>
+                <th>提交人</th>
+                <th>组织</th>
+                <th>状态</th>
+                <th>提交时间</th>
+              </tr>
+            </thead>
+            <tbody id="adminFeedback"></tbody>
+          </table>
+        </div>
       </section>
     </section>
   </main>

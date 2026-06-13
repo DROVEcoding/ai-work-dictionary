@@ -42,6 +42,75 @@ export function formatAdminFeedbackReports(rows = []) {
   }));
 }
 
+function matchesQuery(values, query) {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  return values.some((value) => String(value || "").toLowerCase().includes(normalizedQuery));
+}
+
+export function filterAdminUsers(users, query) {
+  return users.filter((user) => matchesQuery([
+    user.email,
+    user.role,
+    user.organizationCount
+  ], query));
+}
+
+export function filterAdminOrganizations(organizations, query) {
+  return organizations.filter((organization) => matchesQuery([
+    organization.name,
+    ...(organization.owners || []),
+    organization.memberCount
+  ], query));
+}
+
+export function filterAdminFeedbackReports(reports, { query = "", status = "all" } = {}) {
+  return reports.filter((report) => {
+    const matchesStatus = status === "all" || report.status === status;
+    return matchesStatus && matchesQuery([
+      report.message,
+      report.status,
+      report.reporterEmail,
+      report.organizationName
+    ], query);
+  });
+}
+
+export function formatAdminOrganizationDetail(row = {}) {
+  const members = (row.members || []).map((member) => ({
+    userId: member.user_id,
+    email: member.email || "未知用户",
+    role: member.role || "member",
+    createdAt: member.created_at
+  }));
+  const feedbackReports = (row.feedback_reports || []).map((report) => ({
+    id: report.id,
+    message: report.message,
+    status: report.status || "open",
+    reporterEmail: report.reporter_email || "未知用户",
+    createdAt: report.created_at
+  }));
+  const termBackup = row.term_backup
+    ? {
+        updatedAt: row.term_backup.updated_at,
+        termCount: Number(row.term_backup.term_count || 0)
+      }
+    : null;
+
+  return {
+    id: row.id,
+    name: row.name || "未命名组织",
+    createdAt: row.created_at,
+    members,
+    owners: members.filter((member) => member.role === "owner"),
+    feedbackReports,
+    termBackup
+  };
+}
+
 export async function loadAdminOverview(supabase) {
   const { data, error } = await supabase.rpc("get_admin_overview").single();
   if (error) {
@@ -76,4 +145,16 @@ export async function loadAdminFeedbackReports(supabase) {
   }
 
   return { ok: true, reports: formatAdminFeedbackReports(data || []), message: "已读取反馈列表。" };
+}
+
+export async function loadAdminOrganizationDetail(supabase, organizationId) {
+  const { data, error } = await supabase
+    .rpc("get_admin_organization_detail", { org_id: organizationId })
+    .single();
+
+  if (error) {
+    return { ok: false, detail: null, message: error.message };
+  }
+
+  return { ok: true, detail: formatAdminOrganizationDetail(data), message: "已读取组织详情。" };
 }

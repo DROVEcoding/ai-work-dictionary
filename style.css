@@ -917,6 +917,34 @@ a.secondary-button {
   gap: 20px;
 }
 
+.admin-filter-panel {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(180px, 240px);
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+  padding: 18px;
+}
+
+.admin-filter-panel label {
+  display: grid;
+  gap: 7px;
+  font-weight: 700;
+}
+
+.admin-filter-panel input,
+.admin-filter-panel select {
+  width: 100%;
+  border: 1px solid #c6d1df;
+  border-radius: 8px;
+  background: #fbfcff;
+  color: var(--text);
+  font: inherit;
+  padding: 10px 12px;
+}
+
 .admin-overview-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -948,6 +976,45 @@ a.secondary-button {
 .admin-list {
   display: grid;
   gap: 10px;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.admin-table th,
+.admin-table td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-table th {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  background: #f8fafc;
+}
+
+.admin-table td {
+  line-height: 1.55;
+}
+
+.admin-empty-cell {
+  color: var(--muted);
+  text-align: center;
+}
+
+.admin-table-button {
+  padding: 7px 10px;
+  white-space: nowrap;
 }
 
 .admin-row {
@@ -992,10 +1059,54 @@ a.secondary-button {
   white-space: nowrap;
 }
 
+.admin-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-detail-block {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fbfcff;
+  padding: 14px;
+}
+
+.admin-detail-block h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.admin-detail-body {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.admin-mini-list {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-mini-row {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--text);
+  padding: 8px;
+  overflow-wrap: anywhere;
+}
+
+.admin-empty-text {
+  margin: 0;
+  color: var(--muted);
+}
+
 @media (max-width: 860px) {
   .hero,
   .admin-hero,
   .admin-overview-grid,
+  .admin-filter-panel,
+  .admin-detail-grid,
   .entry-view,
   .backup-panel,
   .cloud-panel,

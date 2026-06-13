@@ -1,4 +1,4 @@
-const CACHE_NAME = "ai-work-dictionary-v12b";
+const CACHE_NAME = "ai-work-dictionary-v12c";
 const APP_SHELL = [
   "./",
   "./index.html",
